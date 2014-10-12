@@ -1,11 +1,11 @@
 <div id="home-feed" ng-controller="HomeController">
     <div id="home-item-container">
         <div class="info-bar">
-            <div class="aether-icon-home">
-                <div class="aether-icon-inner-box">
-                    <img src="img/aethersign.icon.slimmer.black.svg" id="aether-welcome-sign">
-                </div>
-            </div>
+            <!--<div class="aether-icon-home">-->
+                <!--<div class="aether-icon-inner-box">-->
+                    <!--<img src="img/aethersign.icon.slimmer.black.svg" id="aether-welcome-sign">-->
+                <!--</div>-->
+            <!--</div>-->
             <div class="home-info-block meta-info">
                 <span class="line-within info-text home-aether-name"
                 ng-hide="updateAvailable">Aether {{ appVersion }}
@@ -50,23 +50,12 @@
                     <span class="bold-text">{{ totalTopicCount }} boards</span>,
                 </span>
                 <span class="line-within">
-                    <span class="bold-text">{{ totalSubjectCount }} threads</span> available.
+                    <span class="bold-text">{{ totalSubjectCount }} threads</span> available. <br>
                 </span>
-            </div>
-            <div class="home-info-block play-pause-block">
                 <span class="line-within">
                     {{lastTimeText}}
                 </span>
-<!--                 <span class="button-inline refresh-button"
-                ng-show="appIsPaused"
-                ng-click="togglePauseClick()">Resume</span>
-                <span class="button-inline refresh-button"
-                ng-hide="appIsPaused"
-                ng-click="togglePauseClick()">Pause</span>
-                <span class="line-within left-leaning">
-                </span> -->
             </div>
-
     </div>
         <div class="topic-block" ng-repeat="topic in topics">
             <div class="topic-block-header">

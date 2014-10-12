@@ -7,10 +7,10 @@
 """
 
 from __future__ import print_function
+import globals
 from twisted.internet import threads
 from sqlalchemy.orm import joinedload
 from datetime import datetime, timedelta
-from termcolor import cprint
 from sqlalchemy.orm import exc
 import miniupnpc, random
 import copy
@@ -20,15 +20,11 @@ from math import log
 import calendar,time
 
 from ORM.models import *
-from globals import aetherListeningPort
 import time
 from InputOutput import interprocessAPI
-import globals
 
-if not globals.debugEnabled:
-    def print(*a):
-        pass
-    def cprint(*a):
+if not globals.userProfile.get('debugDetails', 'debugLogging'):
+    def print(*a, **kwargs):
         pass
 
 
@@ -45,7 +41,8 @@ def timeit(method):
 
     return timed
 
-
+#Listening port isn't likely to change within an instance.
+aetherListeningPort = globals.userProfile.get('machineDetails', 'listeningPort')
 
 def checkUPNPStatus(delay):
 
@@ -108,43 +105,27 @@ def checkUPNPStatus(delay):
 def getNodesToConnect(amount=10, timeout=0):
     def threadFunction():
         s = Session()
+        sanitisedTimeout = int(timeout)
+        sanitisedAmount = int(amount)
         connecteds = s.query(Node).order_by(Node.LastConnectedDate.desc())\
-            .filter(Node.LastConnectedDate < (datetime.utcnow() - timedelta(minutes = timeout)))\
+            .filter(Node.LastConnectedDate < (datetime.utcnow() - timedelta(minutes = sanitisedTimeout)))\
             .filter(Node.LastConnectedIP != 'LOCAL')\
-            .limit(amount*4)\
+            .limit(sanitisedAmount*4)\
             .all()
-        randConnectedIndexes = [int(amount*4*random.random()) for i in xrange(amount/2)] # get random x items from 0-25 range.
+        randConnectedIndexes = [int(sanitisedAmount*4*random.random()) for i in xrange(sanitisedAmount/2)] # get random x items from 0-25 range.
         finalConnectedArray = []
-        if len(connecteds) < amount*4:
-            finalConnectedArray = connecteds[:amount]
+        if len(connecteds) < sanitisedAmount*4:
+            finalConnectedArray = connecteds[:sanitisedAmount]
         else:
             for rNumber in randConnectedIndexes:
                 finalConnectedArray.append(connecteds[rNumber])
-        # This prevents connection to nodes connected to in the last [timeout] minutes.
-
-        # Okay, retrieveds.. I need to increase the accuracy of retrieved selection.
-        # retrieveds = s.query(Node).order_by(Node.LastRetrievedDate.desc())\
-        #     .filter(Node.LastConnectedIP == None)\
-        #     .limit(amount*4).all()
-        # randRetrievedIndexes = [int(amount*4*random.random()) for i in xrange(amount/2)] # get random x items from 0-25 range.
-        # finalRetrievedArray = []
-        # if len(retrieveds) < amount*4:
-        #     finalRetrievedArray = retrieveds[:amount]
-        # else:
-        #     for rNumber in randRetrievedIndexes:
-        #         finalRetrievedArray.append(retrieveds[rNumber])
         retrieveds = s.query(Node).order_by(Node.LastRetrievedDate.desc())\
             .filter(Node.LastConnectedIP == None)\
-            .limit(amount/2).all()
+            .limit(sanitisedAmount/2).all()
         finalRetrievedArray = []
         for n in retrieveds:
             finalRetrievedArray.append(n)
         s.close()
-        # if (len(connecteds) + len(retrieveds) < amount):
-        #     print('All Connected Nodes: %s' %connecteds)
-        #     print('All Retrieved Nodes: %s' %retrieveds)
-        #     return connecteds + retrieveds # If we don't have enough people, don't filter.
-        # else:
         connectedIdList = []
         for n in finalConnectedArray:
             connectedIdList.append(n.NodeId)
@@ -290,9 +271,24 @@ class GlobalCommitter(object):
             except:
                 pass
             else:
-                if parent.LocallyCreated:
-                    replyFlag = True
-                    self.thereAreReplies = True
+                if parent.LocallyCreated and not post.ReplyDismissed:
+                    if ((parent.OwnerUsername != '' or parent.OwnerFingerprint != '') and parent.Subject != '' and parent.Body == ''):
+                    # If parent is a subject
+                        if post.LocallyCreated:
+                            pass
+                        else:
+                            replyFlag = True
+                            self.thereAreReplies = True
+                    elif (parent.OwnerUsername != '' or parent.OwnerFingerprint != '') and parent.Body != None: # If post
+                        if post.LocallyCreated:
+                            # replyFlag = True # FIXME this should be out for self replies...
+                            # self.thereAreReplies = True
+                            pass
+                        else:
+                            replyFlag = True
+                            self.thereAreReplies = True
+                    else: # If topic
+                        pass
 
             # Here I start counting the upvotes, downvotes and else. This is simpler, because it's flat.
             upvoteCount = session.query(Vote).filter(Vote.Direction == 1,
@@ -458,7 +454,7 @@ class GlobalCommitter(object):
             # print('Commit completed.', len(self.sanitizedHeaderQueue), 'headers,',
             #       len(self.sanitizedPostQueue),'posts,', len(self.sanitizedVoteQueue), 'votes, and',
             #       len(self.sanitizedNodeQueue), 'nodes are committed.')
-            print('Commit completed.', len(self.sanitizedHeaderQueue), 'headers,', len(self.sanitizedPostQueue),'posts,', len(self.sanitizedVoteQueue), 'votes, and', len(self.sanitizedNodeQueue), 'nodes are committed.')
+            print('Commit completed.', len(self.sanitizedHeaderQueue), 'headers,', len(self.sanitizedPostQueue),'posts,', len(self.sanitizedVoteQueue), 'votes, and', len(self.sanitizedNodeQueue), 'nodes are committed. #COMMITRESULT')
             # And clear the copied values.
             postsCopy = []
             votesCopy = []
@@ -473,7 +469,7 @@ class GlobalCommitter(object):
             self.newPostsToIncrement = []
             # If we have a reply at hand, send a signal.
             if self.thereAreReplies:
-                self.interProt.callRemote(interprocessAPI.thereAreReplies)
+                self.interProt.notifyMainProcessOfNewReplies()
                 self.thereAreReplies = False
             # Finally, call the maintenance loop.
             session.close()
@@ -482,9 +478,67 @@ class GlobalCommitter(object):
 
         return threads.deferToThread(threadFunction)
 
+    def postSHAIsValid(self, postAsDict):
+        concatInput = unicode_(postAsDict['Subject']) \
+                               + unicode_(postAsDict['Body']) \
+                               + unicode_(postAsDict['CreationDate']) \
+                               + unicode_(postAsDict['ProtocolVersion']) \
+                               + unicode_(postAsDict['OwnerUsername']) \
+                               + unicode_(postAsDict['OwnerFingerprint']) \
+                               + unicode_(postAsDict['ParentPostFingerprint'])
+
+        expectedFingerprint = hashlib.sha256(concatInput.encode('utf-8')).hexdigest()
+        if expectedFingerprint == postAsDict['PostFingerprint']:
+            return True
+        else:
+            print('Post fingerprint does not match. Expected: %s, Actual: %s' %
+                  (expectedFingerprint, postAsDict['PostFingerprint']))
+            return False
+
+    def hasOwner(self, p):
+        if (p['OwnerUsername'] != u'' or p['OwnerUsername'] is not None) or \
+                (p['OwnerFingerprint'] != u'' or p['OwnerFingerprint'] is not None):
+            return True
+        else:
+            return False
+
+    def isPost(self, p):
+        if (p['Body'] != u'' or p['Body'] is not None) and \
+                (p['ParentPostFingerprint'] != u'' or p['ParentPostFingerprint'] is not None) \
+                and self.hasOwner(p) and \
+                (p['Subject'] == u'' or p['Subject'] is None):
+            return True
+        else:
+            return False
+
+    def isSubject(self, p):
+        if (p['Subject'] != u'' or p['Subject'] is not None) and \
+                (p['ParentPostFingerprint'] != u'' or p['ParentPostFingerprint'] is not None) and \
+                self.hasOwner(p) and \
+                (p['Body'] != u'' or p['Body'] is not None):
+            return True
+        else:
+            return False
+
+    def isTopic(self, p):
+        if (p['Subject'] != u'' or p['Subject'] is not None) and \
+                (p['ParentPostFingerprint'] == u'' or p['ParentPostFingerprint'] is None) and \
+                (p['Body'] == u'' or p['Body'] is None) and \
+                not self.hasOwner(p):
+            return True
+        else:
+            return False
+
+    def postTypeIsValid(self, p):
+        if self.isPost(p) or self.isSubject(p) or self.isTopic(p):
+            return True
+        else:
+            return False
+
     def addPost(self, postAsDict):
         assert isinstance(postAsDict, dict)
-        self.postQueue.append(postAsDict)
+        if self.postSHAIsValid(postAsDict) and self.postTypeIsValid(postAsDict):
+            self.postQueue.append(postAsDict)
 
     def addHeader(self, headerAsDict):
         assert isinstance(headerAsDict, dict)

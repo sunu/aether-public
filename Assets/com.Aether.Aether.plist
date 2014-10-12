@@ -6,7 +6,7 @@
 	<string>com.Aether.Aether</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/Applications/Aether.app/Contents/MacOS/aether</string>
+		<string>/Applications/Aether.app/Contents/MacOS/main</string>
 		<string>-openatlogin</string>
 	</array>
 	<key>RunAtLoad</key>

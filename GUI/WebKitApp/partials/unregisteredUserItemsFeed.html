@@ -7,6 +7,7 @@
             <div ng-repeat="post in leftFeed"
             ng-include="decideNgInclude(post.Subject)">
             </div>
+            <div class="settings-ok-button" id="advanced-ok-button" ng-click="showMore()">SHOW MORE</div>
         </div>
         <div class="right-column">
             <div ng-repeat="post in rightFeed"

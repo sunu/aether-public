@@ -3,6 +3,8 @@
     outbound.
 """
 from __future__ import print_function
+import globals
+from globals import NODE_PACKET_COUNT, HEADER_PACKET_COUNT, PROT_VERSION, PROFILE_DIR
 import ujson
 from calendar import timegm as toUnixTimestamp
 from datetime import datetime, timedelta
@@ -13,20 +15,18 @@ from twisted.protocols import amp
 from twisted.internet.protocol import ClientFactory
 from twisted.internet.task import LoopingCall
 from twisted.internet.endpoints import TCP4ClientEndpoint, SSL4ClientEndpoint
-from termcolor import cprint
 from twisted.internet import reactor
 
 from InputOutput import networkAPI
 from ORM import Mercury, Demeter
-from globals import basedir, aetherListeningPort, protocolVersion, profiledir, debugEnabled
-import globals
 from ORM.Demeter import committer
 
-if not globals.debugEnabled:
+if not globals.userProfile.get('debugDetails', 'debugLogging'):
     def print(*a, **kwargs):
         pass
-    def cprint(text, color=None, on_color=None, attrs=None, **kwargs):
-        pass
+
+#Listening port isn't likely to change within an instance. This is useful to prevent too many .get calls.
+aetherListeningPort = globals.userProfile.get('machineDetails', 'listeningPort')
 
 
 class AetherProtocol(amp.AMP):
@@ -113,7 +113,7 @@ class AetherProtocol(amp.AMP):
             print('L<-R: Handshake reply. N: ', reply['NodeId'])
 
         self.callRemote(networkAPI.Handshake, NodeId=self.factory.localNodeId, ListeningPort=aetherListeningPort,
-                        ProtocolVersion=protocolVersion)\
+                        ProtocolVersion=PROT_VERSION)\
         .addCallback(replyArrived)\
         .addErrback(self.abortConnection, 'L->R', self.initiateHandshake.__name__)
 
@@ -125,8 +125,7 @@ class AetherProtocol(amp.AMP):
             return
         # Why no replyArrived? Because I don't need whatever this returns. It returns empty.
         print('L->R: Headers request, Timestamp: ', self.connectedNode['LastSyncTimestamp'] if self.connectedNode['LastSyncTimestamp'] != None else 'Initial connection', ' N: ', self.connectedNode['NodeId'])
-        langs = globals.userLanguages # FIXME
-        #langs = ['English']
+        langs = globals.userProfile.get('userDetails', 'userLanguages')
         return self.callRemote(networkAPI.RequestHeaders, LastSyncTimestamp =
                 ujson.dumps(self.connectedNode['LastSyncTimestamp']), Languages = langs)\
                 .addErrback(self.abortConnection, 'L->R', self.requestHeaders.__name__)
@@ -175,7 +174,7 @@ class AetherProtocol(amp.AMP):
             if prot.connectionState != 'CLOSED' \
             and prot.connectedNode \
             and prot.connectedNode['NodeId'] == node['NodeId']:
-                cprint('I HAVE THE SAME CONNECTION OPEN', 'red')
+                print('I HAVE THE SAME CONNECTION OPEN')
                 return
                 # Right. actually returning here doesn't stop anything.. the next callback still fires.
         self.connectedNode = node
@@ -189,8 +188,8 @@ class AetherProtocol(amp.AMP):
         print('L<-R: Handshake request from ', self.transport.getPeer().host, ' N:', NodeId)
         self.connectionState = 'HANDSHAKE'
         ip = self.transport.getPeer().host
-        if len(self.factory.openConnections) > globals.maxInboundCount:
-            # cprint('Connection refused because I\'m too busy.', 'red')
+        if len(self.factory.openConnections) > globals.userProfile.get('machineDetails', 'maxInboundCount'):
+            print('Connection refused because I\'m too busy.')
             self.transport.loseConnection()
         else:
             d = Mercury.handleConnectingNode(NodeId, ip, ListeningPort) # returns a node as dict.
@@ -200,7 +199,7 @@ class AetherProtocol(amp.AMP):
              .addErrback(self.abortConnection, 'L<-R', self.requestHeaders.__name__)
         reply = {'NodeId': self.factory.localNodeId,
                  'ListeningPort': aetherListeningPort,
-                 'ProtocolVersion': protocolVersion }
+                 'ProtocolVersion': PROT_VERSION }
         print('L->R: Handshake reply sent.', ' N:', NodeId)
         return reply
 
@@ -228,7 +227,7 @@ class AetherProtocol(amp.AMP):
                 totalPacketNumber = 1
             return dbReply
 
-        d.addCallback(calculatePacketCounts, globals.headerPacketCount)
+        d.addCallback(calculatePacketCounts, HEADER_PACKET_COUNT)
 
         def bucketise(dbReply, bucketSize, CPNo):
 
@@ -288,7 +287,7 @@ class AetherProtocol(amp.AMP):
             else:
                 return process(dbReply[0:bucketSize], CPNo) # current batch.
 
-        d.addCallback(bucketise, globals.headerPacketCount, currentPacketNumber)
+        d.addCallback(bucketise, HEADER_PACKET_COUNT, currentPacketNumber)
         d.addErrback(self.abortConnection, 'L<-R', Mercury.getHeaders.__name__)
         #return d # bad local return?
         return {}
@@ -396,7 +395,7 @@ class AetherProtocol(amp.AMP):
                 totalPacketNumber = 1
             return dbReply
 
-        d.addCallback(calculatePacketCounts, globals.nodePacketCount)
+        d.addCallback(calculatePacketCounts, NODE_PACKET_COUNT)
 
         def bucketise(dbReply, bucketSize ,CPNo):
             # Here I have the entire reply from the db. I need divide that reply into buckets, and fire each
@@ -422,7 +421,7 @@ class AetherProtocol(amp.AMP):
             else:
                 return process(dbReply[0:bucketSize], CPNo) # current batch.
 
-        d.addCallback(bucketise, globals.nodePacketCount, currentPacketNumber)
+        d.addCallback(bucketise, NODE_PACKET_COUNT, currentPacketNumber)
         d.addErrback(self.abortConnection, 'L<-R', self.respondWithNodes.__name__)
         return d
 
@@ -456,7 +455,8 @@ class AetherProtocol(amp.AMP):
 
                 # And kill the connection.
                 self.connectionState = 'CLOSED'
-                print('L=/=R: I have received', self.arrivedHeaderPackets, 'headers,', self.arrivedPosts, 'posts, and', self.arrivedNodePackets, 'nodes.')
+                print('L=/=R: I have received ~', int(self.arrivedHeaderPackets) * globals.HEADER_PACKET_COUNT,
+                      'headers,', self.arrivedPosts, 'posts, and ~', int(self.arrivedNodePackets) * globals.NODE_PACKET_COUNT, 'nodes.')
                 self.transport.loseConnection()
             else:
                 # Tell remote that this computer is done. It will close the connection when done.
@@ -498,9 +498,7 @@ class AetherProtocolFactory(ClientFactory):
             if protocol.connectionState != 'CLOSED':
                 protocol.transport.loseConnection()
 
-    with open(profiledir + 'UserProfile/backendSettings.dat', 'rb') as f2:
-        localNodeId = pickle.load(f2)
-
+    localNodeId = globals.userProfile.get('machineDetails', 'nodeid')
     # This should be called every five seconds.
     def overseer(self):
         print(len(self.openConnections), 'connections open at', datetime.utcnow())
@@ -529,28 +527,37 @@ class AetherProtocolFactory(ClientFactory):
                     self.openConnections.remove(protocol)
                 if state == 'HEADER':
                     # Force advance to the next state.
-                    print('Expected header packets: ', protocol.expectedHeaderPackets, 'Arrived header packets: ', protocol.arrivedHeaderPackets)
-                    print('Connection stuck. Force advancing from HEADER to POST')
-                    # Invalidate the timestamp.
-                    protocol.remoteSyncTimestampInvalidated = True
-                    # Advance to the next state.
-                    protocol.advanceToNextStateFromHeader()
+                    if (protocol.expectedHeaderPackets == protocol.arrivedHeaderPackets): # This is the second level check.
+                        protocol.advanceToNextStateFromHeader()
+                    else:
+                        print('Expected header packets: ', protocol.expectedHeaderPackets, 'Arrived header packets: ', protocol.arrivedHeaderPackets)
+                        print('Connection stuck. Force advancing from HEADER to POST')
+                        # Invalidate the timestamp.
+                        protocol.remoteSyncTimestampInvalidated = True
+                        # Advance to the next state.
+                        protocol.advanceToNextStateFromHeader()
                 elif state == 'POST':
-                    # Force advance to the next state.
-                    print('Expected posts: ', protocol.expectedPosts, 'Arrived posts: ', protocol.arrivedPosts)
-                    print('Connection stuck. Force advancing from POST to NODE')
-                    # Invalidate the timestamp.
-                    protocol.remoteSyncTimestampInvalidated = True
-                    # Advance to the next state.
-                    protocol.advanceToNextStateFromPost()
+                    if (protocol.expectedPosts == protocol.arrivedPosts): # This is the second level check.
+                        protocol.advanceToNextStateFromPost()
+                    else:
+                        # Force advance to the next state.
+                        print('Expected posts: ', protocol.expectedPosts, 'Arrived posts: ', protocol.arrivedPosts)
+                        print('Connection stuck. Force advancing from POST to NODE')
+                        # Invalidate the timestamp.
+                        protocol.remoteSyncTimestampInvalidated = True
+                        # Advance to the next state.
+                        protocol.advanceToNextStateFromPost()
                 elif state == 'NODE':
-                    # Force advance to the next state.
-                    print('Expected node packets: ', protocol.expectedNodePackets, 'Arrived node packets: ', protocol.arrivedNodePackets)
-                    print('Connection stuck. Force advancing from NODE to CLOSED')
-                    # Invalidate the timestamp.
-                    #protocol.remoteSyncTimestampInvalidated = True
-                    # Advance to the next state.
-                    protocol.advanceToNextStateFromNode()
+                    if (protocol.expectedNodePackets == protocol.arrivedNodePackets):  # This is the second level check.
+                        protocol.advanceToNextStateFromNode()
+                    else:
+                        # Force advance to the next state.
+                        print('Expected node packets: ', protocol.expectedNodePackets, 'Arrived node packets: ', protocol.arrivedNodePackets)
+                        print('Connection stuck. Force advancing from NODE to CLOSED')
+                        # Invalidate the timestamp.
+                        protocol.remoteSyncTimestampInvalidated = True
+                        # Advance to the next state.
+                        protocol.advanceToNextStateFromNode()
 
     #def clientConnectionFailed(self, connector, reason):
     #    print('Connection failed, because: %s' %reason.getErrorMessage())

@@ -16,7 +16,7 @@
         <div class="owner-information">
             <span class="subject-owner">
                 <!--<img src="img/aethersign.icon.slimmer.DDD.svg" alt="" class="header-aether-sign">-->
-                {{ topic.OwnerUsername }}
+                {{ topic.OwnerUsername | truncate:10}}
             </span>
         </div>
         <div class="meta">

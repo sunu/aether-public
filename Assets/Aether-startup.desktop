@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Aether
+Comment=Aether is an anonymous, encrypted distributed network.
+Exec=/usr/bin/aether/Aether -openatlogin
+Icon=/usr/bin/aether/Assets/aether_linux_icon.png
+Terminal=false
+Categories=Network;

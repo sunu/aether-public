@@ -1,0 +1,31 @@
+/*These fonts are Windows replacement of EBGaramont because the actual font looks italic on Windows, I have no idea why.*/
+/*Hopefully I'll get rid of this when I decide on a better font to use.*/
+/*@font-face {*/
+  /*font-family:"EBGaramond-Regular";*/
+  /*src: url("../typefaces/EB_Garamond/EBGaramond12-Regular.ttf");*/
+/*}*/
+
+/*@font-face {*/
+  /*font-family:"EBGaramond-Italic";*/
+  /*src: url("../typefaces/EB_Garamond/EBGaramond12-Italic.ttf");*/
+/*}*/
+
+/*@font-face {*/
+  /*font-family:"EBGaramond-Smallcaps";*/
+  /*src: url("../typefaces/EB_Garamond/EBGaramond12-AllSC.ttf");*/
+/*}*/
+
+@font-face {
+  font-family:"Merriweather-Regular";
+  src: url("../typefaces/Merriweather/Merriweather-Regular.ttf");
+}
+
+@font-face {
+  font-family:"Merriweather-Italic";
+  src: url("../typefaces/Merriweather/Merriweather-Italic.ttf");
+}
+
+@font-face {
+  font-family:"Merriweather-Smallcaps";
+  src: url("../typefaces/Merriweather/Merriweather-Regular.ttf");
+}

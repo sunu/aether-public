@@ -1,7 +1,6 @@
 <div class="user-feed-post-item" ng-click="clickToPostItem(post.PostFingerprint)">
     <div class="content-area">
-        <div class="digest" ng-show="post.Body">
-            {{ post.Body | truncate:750 }}
+        <div class="digest" ng-show="post.Body" ng-bind-html="post.Body | truncate:500">
         </div>
         <div class="meta">
             <div class="counters">

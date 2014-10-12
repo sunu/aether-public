@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import globals
+from globals import FROZEN, PLATFORM, PROFILE_DIR, NEWBORN, RESETTED, NUKED
 import hashlib
 from datetime import datetime
 from os import mkdir
@@ -11,8 +13,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import SingletonThreadPool
 
-
-from globals import basedir, nodeid, newborn, resetted, nuked, FROZEN, PLATFORM, profiledir
+nodeid = globals.userProfile.get('machineDetails', 'nodeid')
 
 #aetherEngine = create_engine('sqlite:///' + basedir + 'Database/aether.db?check_same_thread=False', connect_args={'timeout': 20})
 # The modification above allows multithreaded access, however
@@ -22,9 +23,9 @@ if PLATFORM is 'WIN':
     # aetherEngine = create_engine('sqlite:///' + basedir + 'Database/aether.db?check_same_thread=False',
     #                              poolclass=SingletonThreadPool,
     #                              use_threadlocal=True)
-    aetherEngine = create_engine('sqlite:///' + profiledir + 'Database/aether.db')
+    aetherEngine = create_engine('sqlite:///' + PROFILE_DIR + 'Database/aether.db')
 else:
-    aetherEngine = create_engine('sqlite:///' + profiledir + 'Database/aether.db')
+    aetherEngine = create_engine('sqlite:///' + PROFILE_DIR + 'Database/aether.db')
 
     #aetherEngine = create_engine('mysql://aether:12345@localhost/aether', encoding='UTF-8', pool_size=50, max_overflow=100)
 
@@ -62,6 +63,7 @@ class Post(Base):
     Neutral = Column(Boolean, default=False)
     Saved = Column(Boolean, default=False)
     IsReply = Column(Boolean, default=False, index=True)
+    ReplyDismissed = Column(Boolean, default=False, index=True)
     Dirty = Column(Boolean, default=True, index=True)
     # Locally set
     LocallyCreated = Column(Boolean, default=False)
@@ -93,6 +95,7 @@ class Post(Base):
         self.LastVoteDate = datetime.utcnow()
         self.LocallyCreated = kwargs['LocallyCreated'] if 'LocallyCreated' in kwargs else None
         self.IsReply = kwargs['IsReply'] if 'IsReply' in kwargs else None
+        self.ReplyDismissed = kwargs['ReplyDismissed'] if 'ReplyDismissed' in kwargs else None
 
         if 'Body' and 'OwnerUsername' and 'OwnerFingerprint' in kwargs is None:
             # If it is a topic
@@ -152,18 +155,18 @@ class PostHeader(Base):
     def asDict(self):
        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
-if newborn:
+if NEWBORN:
     session = Session()
     if FROZEN:
         try:
-            mkdir(profiledir + 'Database')
+            mkdir(PROFILE_DIR + 'Database')
         except: pass
     Base.metadata.create_all(aetherEngine)
     session.add(Node(NodeId=nodeid, LastConnectedIP='LOCAL'))
     session.commit()
     session.close()
 
-if resetted:
+if RESETTED:
     session = Session()
     node = session.query(Node).filter(Node.LastConnectedIP == 'LOCAL').one()
     node.NodeId = nodeid
@@ -171,7 +174,7 @@ if resetted:
     session.commit()
     session.close()
 
-if nuked:
+if NUKED:
     session = Session()
     Base.metadata.create_all(aetherEngine)
     session.add(Node(NodeId=nodeid, LastConnectedIP='LOCAL'))

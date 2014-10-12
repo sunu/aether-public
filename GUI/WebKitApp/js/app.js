@@ -3,7 +3,8 @@
 angular.module('aether', [
     'aether.filters',
     'aether.services',
-    'aether.directives'])
+    'aether.directives',
+    'ngSanitize'])
 
 
 angular.module('aether.directives', [])

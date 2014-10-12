@@ -1,6 +1,6 @@
 <!-- I need an angular directive checking the comment level and applying the approp-
 riate level conditionally here. -->
-<div class="comment depth-{{ post.Depth }}">
+<div class="comment depth-{{ post.Depth }}" id="post-{{ post.PostFingerprint }}">
     <div class="overline"></div>
     <div class="counters">
         <i class="fa fa-arrow-up upvote-counter-icon">
@@ -17,13 +17,13 @@ riate level conditionally here. -->
     <span class="comment-datetime">
         <!-- A better way to represent this would be relative times. (13 seconds
         ago etc.) -->
-        {{ post.CreationDate + '000' | date:'MMMM d EEEE, H:mm' }}
+        {{ post.CreationDate + '000' | date:'MMMM d yyyy, H:mm' }}
     </span>
     <div class="hide-switch" ng-click="toggleThreadCollapse()">
         <i class="fa fa-caret-down hide-icon">
         </i>
     </div>
-    <div class="text" ng-bind="post.Body">
+    <div class="text" ng-bind-html="post.Body">
         <!-- This is very likely a HORRIBLE idea, so fix this -->
     </div>
     <div class="meta">

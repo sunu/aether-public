@@ -17,6 +17,11 @@ function PostsController($scope, $rootScope, frameViewStateBroadcast,
     var getPosts = function(requestedId) {
         gateReaderServices.getAllPosts(postsArrived, $rootScope.requestedId)
         function postsArrived(data) {
+            for (var i = 0; i<data.length; i++) {
+                (function(i){
+                    data[i].Body = $rootScope.mdConverter.makeHtml(data[i].Body)
+                })(i)
+            }
             $scope.feed = data
         }
     }
@@ -32,6 +37,7 @@ function PostsController($scope, $rootScope, frameViewStateBroadcast,
         console.log("openreplypane has been called")
         $rootScope.targetPost = fingerprint
         frameViewStateBroadcast.receiveState("", "createLite", $rootScope.requestedId)
+        $rootScope.createPaneIsFullscreen = false
         $rootScope.thirdFrameCSSStyle = {
             'display':'block',
             'width':'393px'

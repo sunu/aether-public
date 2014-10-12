@@ -1,10 +1,12 @@
+from __future__ import print_function
+import globals
+from globals import NEWBORN, AETHER_VERSION, PLATFORM
+
 from PyQt5.QtCore import *
 import ujson
 from datetime import datetime
 
 from ORM import Hermes
-from globals import nodeid, newborn, appVersion, updateAvailable, onboardingComplete, PLATFORM
-import globals
 
 
 class Charon(QObject):
@@ -217,9 +219,9 @@ class Charon(QObject):
                 returnList.append(postJSON)
             return ujson.dumps(returnList, ensure_ascii=False)
 
-    @pyqtSlot(str, result=str)
-    def getUnregisteredUserPosts(self, name):
-        posts = self.Hermes.getUnregisteredUserPosts(name)
+    @pyqtSlot(str, str, result=str)
+    def getUnregisteredUserPosts(self, name, offset):
+        posts = self.Hermes.getUnregisteredUserPosts(name, offset)
         return multiJsonify(posts)
 
 
@@ -261,23 +263,23 @@ class Charon(QObject):
 
     @pyqtSlot(result=str)
     def nodeId(self):
-        return nodeid
+        return globals.userProfile.get('machineDetails', 'nodeid')
 
     @pyqtSlot(result=bool)
     def newborn(self):
-        return newborn
+        return NEWBORN
 
-    @pyqtSlot(result=bool)
-    def onboardingComplete(self):
-        return onboardingComplete
+    # @pyqtSlot(result=bool)
+    # def onboardingComplete(self):
+    #     return globals.userProfile.get('machineDetails', 'onboardingComplete')
 
     @pyqtSlot(result=str)
     def appVersion(self):
-        return str(appVersion)
+        return str(AETHER_VERSION)
 
     @pyqtSlot(result=bool)
     def updateAvailable(self):
-        return updateAvailable
+        return globals.userProfile.get('machineDetails', 'updateAvailable')
 
     @pyqtSlot(result=str)
     def getOperatingSystem(self):
@@ -287,7 +289,9 @@ class Charon(QObject):
 
     @pyqtSlot(result=bool)
     def markAllRepliesAsRead(self):
-        self.trayIcon.makeIconGoDark()
+        if PLATFORM == 'WIN' or PLATFORM == 'OSX':
+            self.trayIcon.makeIconGoDark()
+        globals.notificationShown = False
         return self.Hermes.markAllRepliesAsRead()
 
     @pyqtSlot(result=bool)
@@ -300,9 +304,9 @@ class Charon(QObject):
         from globals import quitApp
         quitApp(reactor)
 
-    @pyqtSlot()
-    def setOnboardingComplete(self):
-        globals.setOnboardingComplete(True)
+    # @pyqtSlot()
+    # def setOnboardingComplete(self):
+    #     globals.userProfile.set('machineDetails', 'onboardingComplete', True)
 
     @pyqtSlot(str, str)
     def connectToNodeWithIP(self, ip, port):
@@ -327,7 +331,7 @@ Gathered from Aether network. Aether is a distributed network of anonymous forum
 This post is licensed under CC-BY-SA.""" \
         % (postAsDict['Body'], postAsDict['OwnerUsername'], str(datetime.utcfromtimestamp(float(postAsDict['CreationDate']))))
         postText = postText.encode('utf8')
-        f = open(filePath, 'wb')
+        f = open(filePath, 'w')
         f.write(postText)
         f.close()
         return True
@@ -366,7 +370,7 @@ These posts are licensed under CC-BY-SA.
         finalPostText = u""
         for p in posts:
             finalPostText = finalPostText + produceSinglePostText(p)
-        f = open(filePath, 'wb')
+        f = open(filePath, 'w')
         f.write(attachCredits(finalPostText).encode('utf8'))# Encode only happens at the end.
         f.close()
         return True

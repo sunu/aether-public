@@ -9,7 +9,7 @@
 // to all layers down below.
 
 angular.module('aether.services')
-    .service('gateReaderServices', function(gateService) {
+    .service('gateReaderServices', function(gateService, $rootScope) {
         var parentThis = this
         this.getAllPosts = function(callback, postFingerprint) {
             // This fetches all posts in node in the tree which is not the end.
@@ -195,10 +195,16 @@ angular.module('aether.services')
             }
         }
 
-        this.getUnregisteredUserPosts = function(callback, userName) {
-            gateService.readGetUnregisteredUserPosts(dataArrived, userName)
-            function dataArrived(data) {
-                callback(data)
+        this.getUnregisteredUserPosts = function(callback, username, offset) {
+            gateService.readGetUnregisteredUserPosts(dataArrived, username, offset)
+            function dataArrived(posts) {
+                for (var i=0; i<posts.length; i++)
+                {
+                    (function(i){
+                        posts[i].Body = $rootScope.mdConverter.makeHtml(posts[i].Body)
+                    })(i)
+                }
+                callback(posts)
             }
 
         }

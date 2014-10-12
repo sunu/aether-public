@@ -1,21 +1,40 @@
 function UnregisteredUserFeed($scope, $rootScope, frameViewStateBroadcast,
     gateReaderServices) {
-
-    gateReaderServices.getUnregisteredUserPosts(dataArrived, $rootScope.requestedUsername)
+    $scope.profileViewOffset = 10
+    gateReaderServices.getUnregisteredUserPosts(dataArrived, $rootScope.requestedUsername, 10)
     function dataArrived(data) {
         var leftFeed = []
         var rightFeed = []
         for (var i =0 ; i<data.length; i++) {
             if (i%2===0) {
-                leftFeed.push(data[i])
+                (function(i){
+                    data[i].Body = $rootScope.mdConverter.makeHtml(data[i].Body)
+                    leftFeed.push(data[i])
+                })(i)
+
             }
             else {
-                rightFeed.push(data[i])
+                (function(i){
+                    data[i].Body = $rootScope.mdConverter.makeHtml(data[i].Body)
+                    rightFeed.push(data[i])
+                })(i)
             }
         }
         $scope.leftFeed = leftFeed
         $scope.rightFeed = rightFeed
     }
+
+    $scope.showMore = function() {
+        $scope.profileViewOffset += 10
+        console.log('profileviewoffset: ', $scope.profileViewOffset)
+    }
+
+    $scope.$watch('profileViewOffset', function(){
+        if ($scope.profileViewOffset != 10) {
+            gateReaderServices.getUnregisteredUserPosts(dataArrived, $rootScope.userProfile.userDetails.username, $scope.profileViewOffset)
+        }
+
+    })
 
     $scope.decideNgInclude = function(postSubject) {
         if (postSubject === '') {

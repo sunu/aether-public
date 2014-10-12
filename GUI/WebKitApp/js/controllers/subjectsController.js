@@ -2,81 +2,104 @@ function SubjectsController($scope, $rootScope, frameViewStateBroadcast, gateRea
 
     $scope.$watch('requestedId + timespan', function() {
         if ($rootScope.requestedId === undefined) {
-            // This if is needed because otherwise the first load calls an undefined
-            // requestedId, forcing the app to load topics to memory when not needed.
-
-            // Here we are doing a second level of data insertion, calculation of
-            // comment counts for each of the subjects. This could be handled in
-            // the API, but then all calls would have this property, needlessly
-            // slowing things down when it is not needed.
-            //$rootScope.requestedId = $rootScope.userProfile.selectedTopics[$rootScope.userProfile.selectedTopics.length-1]
+            // Do nothing. Make the entire thing invisible, so it doesn't look ugly.
+            document.getElementsByClassName('subject-global-actions-box')[0].style.opacity = 0
+            document.getElementById('aether-footer-brand').style.opacity = 0
         }
-        if ($scope.timespan === undefined || $scope.timespan === 0) {
-            console.log("timespan undefined or zero")
-            gateReaderServices.getSubjects(subjectsArrived,
-                $rootScope.requestedId, 180) // six months.
+        else
+        {
+            document.getElementsByClassName('subject-global-actions-box')[0].style.opacity = 1
+            document.getElementById('aether-footer-brand').style.opacity = 1
+            if ($scope.timespan === undefined || $scope.timespan === 0) {
+                console.log("timespan undefined or zero")
+                gateReaderServices.getSubjects(subjectsArrived,
+                    $rootScope.requestedId, 180) // six months.
 
-            $scope.timespanIsFiltered = false
-        }
-        else {
-            console.log("timespan NOT undefined or zero")
-            gateReaderServices.getSubjects(subjectsArrived,
-                $rootScope.requestedId, $scope.timespan)
-
-            $scope.timespanIsFiltered = true
-        }
-
-        function subjectsArrived(data) {
-
-            // here, sort data according to score.
-
-            //data = data.sort($rootScope.sortByScore)
-
-            $scope.singleCol = data
-
-            var column1 = []
-            var column2 = []
-            var column3 = []
-            for (var i=0;i<data.length;i++) {
-                if (i%3===0) {
-                    column1.push(data[i])
-                }
-                else if(i%3===1) {
-                    column2.push(data[i])
-                }
-                else {
-                    column3.push(data[i])
-                }
-            }
-            $scope.subjectsCol1 = column1
-            $scope.subjectsCol2 = column2
-            $scope.subjectsCol3 = column3
-
-            var length = column1.length + column2.length + column3.length
-            // This allows me to hide the unsightly page in case a topic has
-            // no available subjects in it to show a good sadface.
-            console.log("subjects in scope ", $scope.subjects)
-            if(length === 0) {
-                $rootScope.noSubjectsAvailable = true
+                $scope.timespanIsFiltered = false
             }
             else {
-                $rootScope.noSubjectsAvailable = false
+                console.log("timespan NOT undefined or zero")
+                gateReaderServices.getSubjects(subjectsArrived,
+                    $rootScope.requestedId, $scope.timespan)
+
+                $scope.timespanIsFiltered = true
             }
 
+            function subjectsArrived(data) {
+
+                // here, sort data according to score.
+
+                //data = data.sort($rootScope.sortByScore)
+
+                $scope.singleCol = data
+
+                var column1 = []
+                var column2 = []
+                var column3 = []
+                for (var i=0;i<data.length;i++) {
+                    if (i%3===0) {
+                        column1.push(data[i])
+                    }
+                    else if(i%3===1) {
+                        column2.push(data[i])
+                    }
+                    else {
+                        column3.push(data[i])
+                    }
+                }
+                $scope.subjectsCol1 = column1
+                $scope.subjectsCol2 = column2
+                $scope.subjectsCol3 = column3
+
+                var length = column1.length + column2.length + column3.length
+                // This allows me to hide the unsightly page in case a topic has
+                // no available subjects in it to show a good sadface.
+                console.log("subjects in scope ", $scope.subjects)
+                if(length === 0) {
+                    $rootScope.noSubjectsAvailable = true
+                }
+                else {
+                    $rootScope.noSubjectsAvailable = false
+                }
+
+            }
+
+            gateReaderServices.getSinglePost(topicArrived, $rootScope.requestedId)
+            function topicArrived(data) {
+                $scope.selectedTopic = data
+                $scope.isCurrentlySubscribed = false
+                // Check if this topic is a topic that is currently subscribed
+                for (var i=0;i<$rootScope.userProfile.userDetails.selectedTopics.length;i++) {
+                    (function(){
+                        if ($rootScope.userProfile.userDetails.selectedTopics[i] ===
+                            $scope.selectedTopic.PostFingerprint) {
+                            $scope.isCurrentlySubscribed = true
+                        }
+                    })()
+                }
+            }
         }
 
-        gateReaderServices.getSinglePost(topicArrived, $rootScope.requestedId)
-        function topicArrived(data) {
-            $scope.selectedTopic = data
-        }
+
+
 
     })
 
-    $rootScope.currentPaneIsSubjects = true
-    $scope.$on("$destroy", function() {
-        $rootScope.currentPaneIsSubjects = false
-        // This is needed so I can switch off the pane view on third pane when we're out of it.
-    })
+    $scope.toggleSubscriptionState = function() {
+        console.log('scope selectedtopic postfingerprint:', $scope.selectedTopic.PostFingerprint)
+        if($rootScope.userProfile.userDetails.selectedTopics
+            .indexOf($scope.selectedTopic.PostFingerprint) > -1 ) {
+            // If it exists, remove
+            var index = $rootScope.userProfile.userDetails.selectedTopics.indexOf($scope.selectedTopic.PostFingerprint)
+            $rootScope.userProfile.userDetails.selectedTopics.splice(index, 1)
+            $scope.isCurrentlySubscribed = false
+        }
+        else
+        {
+            $rootScope.userProfile.userDetails.selectedTopics.push($scope.selectedTopic.PostFingerprint)
+            $scope.isCurrentlySubscribed = true
+        }
+    }
 
 
 

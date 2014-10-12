@@ -2,7 +2,7 @@
 // Charon, and decodes them into Javascript objects.
 
 angular.module('aether.services')
-    .service('gateService', function() {
+    .service('gateService', function($rootScope) {
 
     this.readFetchAllResponse = function(callback, postFingerprint) {
         var returnedBlob = JSON.parse(Charon.getAllPosts(postFingerprint))
@@ -126,8 +126,8 @@ angular.module('aether.services')
                 callback(resultArray)
     }
 
-    this.readGetUnregisteredUserPosts = function(callback, userName)  {
-            var resultArray = __multiParsify(Charon.getUnregisteredUserPosts(userName))
+    this.readGetUnregisteredUserPosts = function(callback, username, offset)  {
+            var resultArray = __multiParsify(Charon.getUnregisteredUserPosts(username, offset))
             callback(resultArray)
     }
 
@@ -141,7 +141,7 @@ angular.module('aether.services')
     }
 
     this.readOnboardingComplete = function(callback) {
-        callback(Charon.onboardingComplete())
+        callback($rootScope.userProfile.machineDetails.onboardingComplete)
     }
 
     this.readAppVersion = function(callback) {
@@ -251,7 +251,8 @@ angular.module('aether.services')
     }
 
     this.writeSetOnboardingComplete = function() {
-        Charon.setOnboardingComplete()
+        $rootScope.userProfile.machineDetails.onboardingComplete = true
+        return true
     }
 
     this.writeConnectToNodeWithIP = function(ip, port) {

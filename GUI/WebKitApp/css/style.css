@@ -35,47 +35,73 @@
   src: url("../typefaces/Source_Sans_Pro/SourceSansPro-SemiboldItalic.ttf");
 }
 @font-face {
-  font-family: "SortsMillGoudy-Italic";
-  src: url("../typefaces/Sorts_Mill_Goudy/SortsMillGoudy-Italic.ttf");
+  font-family: "Merriweather-Regular";
+  src: url("../typefaces/Merriweather/Merriweather-Regular.ttf");
 }
 @font-face {
-  font-family: "SortsMillGoudy-Regular";
-  src: url("../typefaces/Sorts_Mill_Goudy/SortsMillGoudy-Regular.ttf");
+  font-family: "Merriweather-Italic";
+  src: url("../typefaces/Merriweather/Merriweather-Italic.ttf");
 }
 @font-face {
-  font-family: "EBGaramond-Regular";
-  src: url("../typefaces/EB_Garamond_mac/EBGaramond12-Regular.ttf");
+  font-family: "Merriweather-Bold";
+  src: url("../typefaces/Merriweather/Merriweather-Bold.ttf");
 }
 @font-face {
-  font-family: "EBGaramond-Italic";
-  src: url("../typefaces/EB_Garamond_mac/EBGaramond12-Italic.ttf");
+  font-family: "Merriweather-BoldItalic";
+  src: url("../typefaces/Merriweather/Merriweather-BoldItalic.ttf");
 }
 @font-face {
-  font-family: "EBGaramond-Smallcaps";
-  src: url("../typefaces/EB_Garamond_mac/EBGaramond12-AllSC.ttf");
+  font-family: "Merriweather-Heavy";
+  src: url("../typefaces/Merriweather/Merriweather-Black.ttf");
+}
+@font-face {
+  font-family: "Merriweather-HeavyItalic";
+  src: url("../typefaces/Merriweather/Merriweather-HeavyItalic.ttf");
 }
 .framecontents {
   box-sizing: border-box;
   width: 100%;
   height: 100%;
 }
+::selection {
+  background: #dff7f7;
+}
+input[type=number] {
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+}
 ::-webkit-scrollbar {
-  width: 5px;
+  width: 7px;
   background-color: #111;
 }
 ::-webkit-scrollbar:hover {
   background-color: #111;
 }
 ::-webkit-scrollbar-thumb:vertical {
-  background: #fff;
+  background: #ccc;
 }
 ::-webkit-scrollbar-thumb:vertical:active {
-  background: #EEEEEE;
+  background: #ccc;
   /* Some darker color when you click it */
-
 }
 *:focus {
   outline: none;
+}
+#cloak {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #111;
+  z-index: 999;
+  display: -webkit-flex;
+}
+#cloak #aether-cloak {
+  margin: auto;
+  width: 100px;
+  height: 100px;
 }
 #root-body {
   height: 680px;
@@ -100,6 +126,11 @@ img {
   vertical-align: middle;
   border: 0;
   max-width: 100%;
+}
+.scrolling-target {
+  opacity: 0;
+  width: 1px;
+  height: 1px;
 }
 #first-frame {
   overflow: auto;
@@ -248,6 +279,11 @@ img {
   -webkit-transition: color, ease, 0.2s;
   margin-top: 2px;
 }
+#first-frame #back-to-threads-icon {
+  color: #444;
+  -webkit-transition: color, ease, 0.2s;
+  margin-top: 2px;
+}
 #first-frame #topics-icon {
   color: #444;
   -webkit-transition: color, ease, 0.2s;
@@ -371,8 +407,89 @@ img {
   position: relative;
   background-color: #FFF;
 }
+#second-frame .text a,
+#second-frame #unregistered-user-profile .user-feed-post-item a {
+  color: #7f9999;
+}
+#second-frame .text p,
+#second-frame #unregistered-user-profile .user-feed-post-item p {
+  margin: 20px 0;
+  line-height: 190%;
+}
+#second-frame .text h1,
+#second-frame #unregistered-user-profile .user-feed-post-item h1,
+#second-frame .text h2,
+#second-frame #unregistered-user-profile .user-feed-post-item h2,
+#second-frame .text h3,
+#second-frame #unregistered-user-profile .user-feed-post-item h3 {
+  margin: 20px 0;
+  line-height: 170%;
+  font-family: "Merriweather-Regular";
+}
+#second-frame .text h3,
+#second-frame #unregistered-user-profile .user-feed-post-item h3 {
+  font-family: "Merriweather-BoldItalic";
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 1.17em;
+  padding: 0;
+}
+#second-frame .text em,
+#second-frame #unregistered-user-profile .user-feed-post-item em {
+  font-family: "Merriweather-Italic";
+}
+#second-frame .text strong,
+#second-frame #unregistered-user-profile .user-feed-post-item strong {
+  font-family: "Merriweather-Heavy";
+}
+#second-frame .text em strong,
+#second-frame #unregistered-user-profile .user-feed-post-item em strong,
+#second-frame .text strong em,
+#second-frame #unregistered-user-profile .user-feed-post-item strong em {
+  font-family: "Merriweather-HeavyItalic";
+}
+#second-frame .text hr,
+#second-frame #unregistered-user-profile .user-feed-post-item hr {
+  border: none;
+  border-top: 1px solid #DDD;
+}
+#second-frame .text p:first-of-type,
+#second-frame #unregistered-user-profile .user-feed-post-item p:first-of-type {
+  margin-top: 0;
+}
+#second-frame .text p:last-of-type,
+#second-frame #unregistered-user-profile .user-feed-post-item p:last-of-type {
+  margin-bottom: 0;
+}
+#second-frame .text p:last-of-type + hr,
+#second-frame #unregistered-user-profile .user-feed-post-item p:last-of-type + hr {
+  display: none;
+}
+#second-frame .text blockquote,
+#second-frame #unregistered-user-profile .user-feed-post-item blockquote {
+  border-left: 4px solid #DDD;
+  padding-left: 15px;
+  color: #999;
+  margin: 22px 0;
+}
+#second-frame .text li,
+#second-frame #unregistered-user-profile .user-feed-post-item li {
+  margin-bottom: 10px;
+}
 #second-frame .bold-text {
   font-family: "SourceSansPro-Black", "Arial Narrow Bold", sans-serif;
+}
+#second-frame .post-color-highlight {
+  -webkit-animation: highlight 4s ease-in;
+  -webkit-animation-iteration-count: 1;
+}
+@-webkit-keyframes highlight {
+  0% {
+    background-color: #dff7f7;
+  }
+  100% {
+    background-color: #FFF;
+  }
 }
 #second-frame .aether-button {
   display: inline-block;
@@ -696,6 +813,7 @@ img {
   -webkit-appaearance: none;
   border: none;
   resize: vertical;
+  cursor: text;
 }
 #second-frame #find-or-create-topic-feed .topic-boxes-holder .add-topic-box .topic-create-button {
   display: inline-block;
@@ -751,7 +869,6 @@ img {
 }
 #second-frame #create-subject-feed {
   width: 100%;
-  height: 100%;
   display: -webkit-flex;
   -webkit-flex-direction: column;
 }
@@ -762,7 +879,7 @@ img {
   background-color: #EEEEEE;
   box-sizing: border-box;
   width: 100%;
-  padding: 15px 15px 15px 15px;
+  padding: 15px 25px 13px 25px;
   font-size: 24px;
   color: #333;
   font-family: "Oswald-Regular", "Arial Narrow Bold", sans-serif;
@@ -773,6 +890,7 @@ img {
   word-break: break-word;
   -webkit-user-select: text;
   user-select: text;
+  cursor: text;
 }
 #second-frame #create-subject-feed .subject-name-entry-container .subject-name-entry:focus {
   outline: none;
@@ -792,16 +910,18 @@ img {
   background-color: #EEEEEE;
   box-sizing: border-box;
   width: 100%;
-  padding: 15px 15px 11px 15px;
-  font-family: "EBGaramond-Regular", serif;
+  padding: 25px 25px 50px 25px;
+  font-family: "Merriweather-Regular", serif;
   color: #333;
-  font-size: 19px;
-  line-height: 155%;
+  font-size: 14px;
+  line-height: 190%;
   overflow: hidden;
   display: inline-block;
   -webkit-flex: 1;
   -webkit-user-select: text;
   user-select: text;
+  min-height: 200px;
+  cursor: text;
 }
 #second-frame #create-subject-feed .subject-body-entry:focus {
   outline: none;
@@ -848,12 +968,32 @@ img {
   color: #AAA;
 }
 #second-frame #settings,
-#second-frame #unregistered-user-profile {
+#second-frame #unregistered-user-profile,
+#second-frame #unregistered-user-items-feed {
   box-sizing: border-box;
   padding-top: 20px;
 }
+#second-frame #settings a,
+#second-frame #unregistered-user-profile a,
+#second-frame #unregistered-user-items-feed a,
+#second-frame #settings a:focus,
+#second-frame #unregistered-user-profile a:focus,
+#second-frame #unregistered-user-items-feed a:focus,
+#second-frame #settings a:hover,
+#second-frame #unregistered-user-profile a:hover,
+#second-frame #unregistered-user-items-feed a:hover {
+  color: #7f9999;
+}
+#second-frame #settings .settings-pane-subtext,
+#second-frame #unregistered-user-profile .settings-pane-subtext,
+#second-frame #unregistered-user-items-feed .settings-pane-subtext {
+  font-family: "Merriweather-Regular";
+  font-size: 14px;
+  line-height: 190%;
+}
 #second-frame #settings .settings-h2,
-#second-frame #unregistered-user-profile .settings-h2 {
+#second-frame #unregistered-user-profile .settings-h2,
+#second-frame #unregistered-user-items-feed .settings-h2 {
   margin-bottom: 20px;
   margin-top: 20px;
   line-height: 20px;
@@ -862,8 +1002,14 @@ img {
   font-size: 17px;
   font-family: "Oswald-Regular", "Arial Narrow Bold", sans-serif;
 }
+#second-frame #settings #advanced-ok-button,
+#second-frame #unregistered-user-profile #advanced-ok-button,
+#second-frame #unregistered-user-items-feed #advanced-ok-button {
+  margin-bottom: 15px;
+}
 #second-frame #settings .settings-ok-button,
-#second-frame #unregistered-user-profile .settings-ok-button {
+#second-frame #unregistered-user-profile .settings-ok-button,
+#second-frame #unregistered-user-items-feed .settings-ok-button {
   display: inline-block;
   box-sizing: border-box;
   height: 40px;
@@ -874,15 +1020,19 @@ img {
   font-family: "SourceSansPro-Bold", "Arial Narrow Bold", sans-serif;
   -webkit-transition: background-color ease 0.8s, color ease 0.8s, border-color ease 0.8s;
   line-height: 245%;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 #second-frame #settings .settings-ok-button:hover,
-#second-frame #unregistered-user-profile .settings-ok-button:hover {
+#second-frame #unregistered-user-profile .settings-ok-button:hover,
+#second-frame #unregistered-user-items-feed .settings-ok-button:hover {
   text-decoration: none;
   background-color: #DDD;
   -webkit-transition: background-color ease 0.4s, color ease 0.4s, border-color ease 0.4s;
 }
 #second-frame #settings .ok-button-disabled,
-#second-frame #unregistered-user-profile .ok-button-disabled {
+#second-frame #unregistered-user-profile .ok-button-disabled,
+#second-frame #unregistered-user-items-feed .ok-button-disabled {
   text-decoration: none;
   background-color: #EEE;
   border-color: #DDD;
@@ -890,33 +1040,46 @@ img {
 }
 #second-frame #settings .question-explanation,
 #second-frame #unregistered-user-profile .question-explanation,
+#second-frame #unregistered-user-items-feed .question-explanation,
 #second-frame #settings .question-name,
 #second-frame #unregistered-user-profile .question-name,
+#second-frame #unregistered-user-items-feed .question-name,
 #second-frame #settings .aether-radio-item,
-#second-frame #unregistered-user-profile .aether-radio-item {
+#second-frame #unregistered-user-profile .aether-radio-item,
+#second-frame #unregistered-user-items-feed .aether-radio-item {
   font-size: 18px;
   font-family: "SourceSansPro-Semibold", "Arial Narrow Bold", sans-serif;
   line-height: 27px;
 }
 #second-frame #settings .question-explanation,
-#second-frame #unregistered-user-profile .question-explanation {
-  color: #CCC;
+#second-frame #unregistered-user-profile .question-explanation,
+#second-frame #unregistered-user-items-feed .question-explanation {
+  color: #AAA;
   margin-left: 10px;
 }
+#second-frame #settings .question-explanation.inner-value,
+#second-frame #unregistered-user-profile .question-explanation.inner-value,
+#second-frame #unregistered-user-items-feed .question-explanation.inner-value {
+  margin-left: 5px;
+  margin-right: 5px;
+}
 #second-frame #settings .radio-container,
-#second-frame #unregistered-user-profile .radio-container {
+#second-frame #unregistered-user-profile .radio-container,
+#second-frame #unregistered-user-items-feed .radio-container {
   display: inline-block;
   margin-right: 3px;
 }
 #second-frame #settings .radio-item-text,
-#second-frame #unregistered-user-profile .radio-item-text {
+#second-frame #unregistered-user-profile .radio-item-text,
+#second-frame #unregistered-user-items-feed .radio-item-text {
   font-size: 15px;
   font-family: "SourceSansPro-Semibold", "Arial Narrow Bold", sans-serif;
   line-height: 27px;
   letter-spacing: 1px;
 }
 #second-frame #settings .defaults-question,
-#second-frame #unregistered-user-profile .defaults-question {
+#second-frame #unregistered-user-profile .defaults-question,
+#second-frame #unregistered-user-items-feed .defaults-question {
   margin-bottom: 22px;
   margin-top: 10px;
   background-color: #EEEEEE;
@@ -925,26 +1088,42 @@ img {
   display: inline-block;
   float: left;
 }
+#second-frame #settings .defaults-question.info-box,
+#second-frame #unregistered-user-profile .defaults-question.info-box,
+#second-frame #unregistered-user-items-feed .defaults-question.info-box {
+  border: 3px solid #111;
+}
+#second-frame #settings .defaults-question.info-box .question-explanation,
+#second-frame #unregistered-user-profile .defaults-question.info-box .question-explanation,
+#second-frame #unregistered-user-items-feed .defaults-question.info-box .question-explanation {
+  color: #999;
+}
 #second-frame #settings .last-defaults-question,
-#second-frame #unregistered-user-profile .last-defaults-question {
+#second-frame #unregistered-user-profile .last-defaults-question,
+#second-frame #unregistered-user-items-feed .last-defaults-question {
   width: 820px;
 }
 #second-frame #settings .aether-radio-set,
-#second-frame #unregistered-user-profile .aether-radio-set {
+#second-frame #unregistered-user-profile .aether-radio-set,
+#second-frame #unregistered-user-items-feed .aether-radio-set {
   margin-left: -4px;
   margin-top: -10px;
 }
 #second-frame #settings .language-header,
-#second-frame #unregistered-user-profile .language-header {
+#second-frame #unregistered-user-profile .language-header,
+#second-frame #unregistered-user-items-feed .language-header {
   font-family: "SourceSansPro-Semibold", "Arial Narrow Bold", sans-serif;
+  overflow: hidden;
 }
 #second-frame #settings .possible-langs,
-#second-frame #unregistered-user-profile .possible-langs {
+#second-frame #unregistered-user-profile .possible-langs,
+#second-frame #unregistered-user-items-feed .possible-langs {
   margin-top: 9px;
   margin-bottom: 9px;
 }
 #second-frame #settings .possible-langs .lang-button,
-#second-frame #unregistered-user-profile .possible-langs .lang-button {
+#second-frame #unregistered-user-profile .possible-langs .lang-button,
+#second-frame #unregistered-user-items-feed .possible-langs .lang-button {
   background-color: #EEEEEE;
   box-sizing: border-box;
   padding: 2px 7px 0px 7px;
@@ -956,28 +1135,34 @@ img {
   margin: 0 4px;
 }
 #second-frame #settings .possible-langs .lang-button:hover,
-#second-frame #unregistered-user-profile .possible-langs .lang-button:hover {
+#second-frame #unregistered-user-profile .possible-langs .lang-button:hover,
+#second-frame #unregistered-user-items-feed .possible-langs .lang-button:hover {
   border-color: #111;
 }
 #second-frame #settings .possible-langs .selected-lang,
-#second-frame #unregistered-user-profile .possible-langs .selected-lang {
+#second-frame #unregistered-user-profile .possible-langs .selected-lang,
+#second-frame #unregistered-user-items-feed .possible-langs .selected-lang {
   background-color: white;
   border-color: #111;
 }
 #second-frame #settings .possible-langs .russian,
-#second-frame #unregistered-user-profile .possible-langs .russian {
+#second-frame #unregistered-user-profile .possible-langs .russian,
+#second-frame #unregistered-user-items-feed .possible-langs .russian {
   font-family: "SourceSansPro-Regular", "Arial Narrow Bold", sans-serif;
 }
 #second-frame #settings .textbox-container,
-#second-frame #unregistered-user-profile .textbox-container {
+#second-frame #unregistered-user-profile .textbox-container,
+#second-frame #unregistered-user-items-feed .textbox-container {
   display: inline-block;
   margin-right: 20px;
   margin-bottom: 6px;
+  margin-top: 10px;
 }
 #second-frame #settings .textbox-container .text-entry,
-#second-frame #unregistered-user-profile .textbox-container .text-entry {
+#second-frame #unregistered-user-profile .textbox-container .text-entry,
+#second-frame #unregistered-user-items-feed .textbox-container .text-entry {
   font-size: 15px;
-  line-height: 170%;
+  line-height: 190%;
   font-family: "SourceSansPro-Regular", "Arial Narrow Bold", sans-serif;
   box-sizing: border-box;
   padding: 8px 15px 7px 10px;
@@ -989,7 +1174,8 @@ img {
   margin-left: 0;
 }
 #second-frame #settings .textbox-container .field-name,
-#second-frame #unregistered-user-profile .textbox-container .field-name {
+#second-frame #unregistered-user-profile .textbox-container .field-name,
+#second-frame #unregistered-user-items-feed .textbox-container .field-name {
   font-size: 14px;
   font-family: "SourceSansPro-Bold", "Arial Narrow Bold", sans-serif;
   line-height: 27px;
@@ -997,7 +1183,8 @@ img {
   letter-spacing: 1px;
 }
 #second-frame #settings .pane-header,
-#second-frame #unregistered-user-profile .pane-header {
+#second-frame #unregistered-user-profile .pane-header,
+#second-frame #unregistered-user-items-feed .pane-header {
   font-family: "Oswald-Bold", "Arial Narrow Bold", sans-serif;
   font-size: 32px;
   text-align: left;
@@ -1006,21 +1193,24 @@ img {
   line-height: 120%;
   margin-bottom: 20px;
   margin-top: 3px;
-  color: #666;
+  color: #111;
 }
 #second-frame #settings p,
-#second-frame #unregistered-user-profile p {
+#second-frame #unregistered-user-profile p,
+#second-frame #unregistered-user-items-feed p {
   margin-top: 0;
 }
 #second-frame #settings h2,
-#second-frame #unregistered-user-profile h2 {
+#second-frame #unregistered-user-profile h2,
+#second-frame #unregistered-user-items-feed h2 {
   font-family: "SourceSansPro-Bold", "Arial Narrow Bold", sans-serif;
   font-size: 22px;
   margin-bottom: 10px;
   margin-top: 4px;
 }
 #second-frame #settings h3,
-#second-frame #unregistered-user-profile h3 {
+#second-frame #unregistered-user-profile h3,
+#second-frame #unregistered-user-items-feed h3 {
   font-size: 17px;
   padding-top: 14px;
   line-height: 20px;
@@ -1030,112 +1220,144 @@ img {
   margin-bottom: 13px;
 }
 #second-frame #settings h4,
-#second-frame #unregistered-user-profile h4 {
+#second-frame #unregistered-user-profile h4,
+#second-frame #unregistered-user-items-feed h4 {
   font-size: 15px;
   padding-top: 5px;
   line-height: 20px;
   text-transform: uppercase;
   letter-spacing: 3px;
-  font-family: "EBGaramond-Regular", serif;
+  font-family: "Merriweather-Regular", serif;
   margin-bottom: 5px;
   margin-top: 0;
 }
 #second-frame #settings .settings-text,
-#second-frame #unregistered-user-profile .settings-text {
+#second-frame #unregistered-user-profile .settings-text,
+#second-frame #unregistered-user-items-feed .settings-text {
   line-height: 210%;
 }
+#second-frame #settings .settings-text b,
+#second-frame #unregistered-user-profile .settings-text b,
+#second-frame #unregistered-user-items-feed .settings-text b {
+  font-family: "Merriweather-HeavyItalic", serif;
+}
+#second-frame #settings .settings-text i,
+#second-frame #unregistered-user-profile .settings-text i,
+#second-frame #unregistered-user-items-feed .settings-text i {
+  font-family: "Merriweather-Italic", serif;
+}
 #second-frame #settings .settings-text .inline-link,
-#second-frame #unregistered-user-profile .settings-text .inline-link {
-  font-family: "EBGaramond-Regular", serif;
-  font-size: 18px;
+#second-frame #unregistered-user-profile .settings-text .inline-link,
+#second-frame #unregistered-user-items-feed .settings-text .inline-link {
+  font-family: "Merriweather-Regular", serif;
+  font-size: 14px;
 }
 #second-frame #settings .settings-text .profile-link,
-#second-frame #unregistered-user-profile .settings-text .profile-link {
+#second-frame #unregistered-user-profile .settings-text .profile-link,
+#second-frame #unregistered-user-items-feed .settings-text .profile-link {
   display: block;
   margin-top: -15px;
 }
 #second-frame #settings .settings-text .profile-link a,
-#second-frame #unregistered-user-profile .settings-text .profile-link a {
+#second-frame #unregistered-user-profile .settings-text .profile-link a,
+#second-frame #unregistered-user-items-feed .settings-text .profile-link a {
   margin: 0 10px 0 0;
   display: inline-block;
 }
 #second-frame #settings .settings-text a,
-#second-frame #unregistered-user-profile .settings-text a {
+#second-frame #unregistered-user-profile .settings-text a,
+#second-frame #unregistered-user-items-feed .settings-text a {
   color: #9cadad;
   font-family: "SourceSansPro-Semibold", "Arial Narrow Bold", sans-serif;
   display: inline-block;
   font-size: 14px;
 }
 #second-frame #settings .settings-text a:hover,
-#second-frame #unregistered-user-profile .settings-text a:hover {
+#second-frame #unregistered-user-profile .settings-text a:hover,
+#second-frame #unregistered-user-items-feed .settings-text a:hover {
   text-decoration: none;
 }
 #second-frame #settings .settings-text a:visited,
-#second-frame #unregistered-user-profile .settings-text a:visited {
+#second-frame #unregistered-user-profile .settings-text a:visited,
+#second-frame #unregistered-user-items-feed .settings-text a:visited {
   color: #9cadad;
 }
 #second-frame #settings .settings-text a:focus,
-#second-frame #unregistered-user-profile .settings-text a:focus {
+#second-frame #unregistered-user-profile .settings-text a:focus,
+#second-frame #unregistered-user-items-feed .settings-text a:focus {
   outline: none;
 }
 #second-frame #settings .settings-text em,
-#second-frame #unregistered-user-profile .settings-text em {
-  font-family: "EBGaramond-Smallcaps", serif;
+#second-frame #unregistered-user-profile .settings-text em,
+#second-frame #unregistered-user-items-feed .settings-text em {
+  font-family: "Merriweather-Regular", serif;
   letter-spacing: 1px;
+  text-transform: uppercase;
 }
 #second-frame #settings .settings-text em.numbers,
-#second-frame #unregistered-user-profile .settings-text em.numbers {
-  font-size: 21px;
+#second-frame #unregistered-user-profile .settings-text em.numbers,
+#second-frame #unregistered-user-items-feed .settings-text em.numbers {
+  font-size: 14px;
   letter-spacing: 0;
   margin-right: 10px;
 }
 #second-frame #settings .settings-text .italic,
-#second-frame #unregistered-user-profile .settings-text .italic {
-  font-family: "EBGaramond-Italic", serif;
+#second-frame #unregistered-user-profile .settings-text .italic,
+#second-frame #unregistered-user-items-feed .settings-text .italic {
+  font-family: "Merriweather-Italic", serif;
 }
 #second-frame #settings .settings-text .by-fix,
-#second-frame #unregistered-user-profile .settings-text .by-fix {
-  letter-spacing: 1px;
+#second-frame #unregistered-user-profile .settings-text .by-fix,
+#second-frame #unregistered-user-items-feed .settings-text .by-fix {
+  margin: 0 1px;
+  font-size: 13px;
 }
 #second-frame #settings .left-column,
-#second-frame #unregistered-user-profile .left-column {
+#second-frame #unregistered-user-profile .left-column,
+#second-frame #unregistered-user-items-feed .left-column {
   -webkit-flex: 3;
   box-sizing: border-box;
   padding-right: 15px;
   line-height: 28px;
 }
 #second-frame #settings .left-column .settings-text,
-#second-frame #unregistered-user-profile .left-column .settings-text {
-  font-family: "EBGaramond-Regular", serif;
-  font-size: 18px;
-  line-height: 150%;
+#second-frame #unregistered-user-profile .left-column .settings-text,
+#second-frame #unregistered-user-items-feed .left-column .settings-text {
+  font-family: "Merriweather-Regular", serif;
+  font-size: 14px;
+  line-height: 190%;
 }
 #second-frame #settings .left-column .settings-text em,
-#second-frame #unregistered-user-profile .left-column .settings-text em {
-  font-family: "EBGaramond-Regular", serif;
-  font-size: 18px;
-  line-height: 150%;
+#second-frame #unregistered-user-profile .left-column .settings-text em,
+#second-frame #unregistered-user-items-feed .left-column .settings-text em {
+  font-family: "Merriweather-Regular", serif;
+  font-size: 14px;
+  line-height: 190%;
 }
 #second-frame #settings .right-column,
-#second-frame #unregistered-user-profile .right-column {
+#second-frame #unregistered-user-profile .right-column,
+#second-frame #unregistered-user-items-feed .right-column {
   -webkit-flex: 4;
   box-sizing: border-box;
   padding: 0 30px;
   line-height: 28px;
 }
 #second-frame #settings .identity-pane,
-#second-frame #unregistered-user-profile .identity-pane {
+#second-frame #unregistered-user-profile .identity-pane,
+#second-frame #unregistered-user-items-feed .identity-pane {
   box-sizing: border-box;
   display: -webkit-flex;
 }
 #second-frame #settings .identity-pane p,
-#second-frame #unregistered-user-profile .identity-pane p {
+#second-frame #unregistered-user-profile .identity-pane p,
+#second-frame #unregistered-user-items-feed .identity-pane p {
   margin-top: 20px;
 }
 #second-frame #settings .identity-pane .username-entry,
-#second-frame #unregistered-user-profile .identity-pane .username-entry {
+#second-frame #unregistered-user-profile .identity-pane .username-entry,
+#second-frame #unregistered-user-items-feed .identity-pane .username-entry {
   font-size: 22px;
-  line-height: 170%;
+  line-height: 190%;
   font-family: "SourceSansPro-Regular", "Arial Narrow Bold", sans-serif;
   box-sizing: border-box;
   padding: 5px 15px 5px 10px;
@@ -1147,25 +1369,35 @@ img {
   margin-left: 0;
 }
 #second-frame #settings .identity-pane .username-entry:focus,
-#second-frame #unregistered-user-profile .identity-pane .username-entry:focus {
+#second-frame #unregistered-user-profile .identity-pane .username-entry:focus,
+#second-frame #unregistered-user-items-feed .identity-pane .username-entry:focus {
   outline: none;
 }
 #second-frame #settings .about-pane,
-#second-frame #unregistered-user-profile .about-pane {
+#second-frame #unregistered-user-profile .about-pane,
+#second-frame #unregistered-user-items-feed .about-pane {
   box-sizing: border-box;
   display: -webkit-flex;
   line-height: 245%;
 }
 #second-frame #settings .about-pane .ending,
-#second-frame #unregistered-user-profile .about-pane .ending {
+#second-frame #unregistered-user-profile .about-pane .ending,
+#second-frame #unregistered-user-items-feed .about-pane .ending {
   margin-bottom: 26px;
 }
+#second-frame #settings .about-pane .ending span,
+#second-frame #unregistered-user-profile .about-pane .ending span,
+#second-frame #unregistered-user-items-feed .about-pane .ending span {
+  font-size: 11px;
+}
 #second-frame #settings .about-pane .right-column,
-#second-frame #unregistered-user-profile .about-pane .right-column {
+#second-frame #unregistered-user-profile .about-pane .right-column,
+#second-frame #unregistered-user-items-feed .about-pane .right-column {
   margin-top: -5px;
 }
 #second-frame #settings .about-pane .logomark,
-#second-frame #unregistered-user-profile .about-pane .logomark {
+#second-frame #unregistered-user-profile .about-pane .logomark,
+#second-frame #unregistered-user-items-feed .about-pane .logomark {
   margin-bottom: 58px;
   margin-left: -4px;
   width: 252px;
@@ -1174,7 +1406,8 @@ img {
   margin-top: 13px;
 }
 #second-frame #settings .about-pane .logomark .logomark-inner,
-#second-frame #unregistered-user-profile .about-pane .logomark .logomark-inner {
+#second-frame #unregistered-user-profile .about-pane .logomark .logomark-inner,
+#second-frame #unregistered-user-items-feed .about-pane .logomark .logomark-inner {
   width: 504px;
   height: 120px;
   position: absolute;
@@ -1182,25 +1415,37 @@ img {
   left: -126px;
 }
 #second-frame #settings .about-pane .logomark .logomark-inner .logomark-image,
-#second-frame #unregistered-user-profile .about-pane .logomark .logomark-inner .logomark-image {
+#second-frame #unregistered-user-profile .about-pane .logomark .logomark-inner .logomark-image,
+#second-frame #unregistered-user-items-feed .about-pane .logomark .logomark-inner .logomark-image {
   width: 504px;
   height: 120px;
   -webkit-transform: scale(0.5);
 }
+#second-frame #settings .about-pane .logomark .logomark-inner .logomark-image-white,
+#second-frame #unregistered-user-profile .about-pane .logomark .logomark-inner .logomark-image-white,
+#second-frame #unregistered-user-items-feed .about-pane .logomark .logomark-inner .logomark-image-white {
+  width: 504px;
+  height: 120px;
+  -webkit-transform: scale(0.5);
+  display: none;
+}
 #second-frame #settings .basics-pane,
-#second-frame #unregistered-user-profile .basics-pane {
+#second-frame #unregistered-user-profile .basics-pane,
+#second-frame #unregistered-user-items-feed .basics-pane {
   box-sizing: border-box;
   display: -webkit-flex;
   display: block;
   line-height: 245%;
 }
 #second-frame #settings .licenses-pane pre,
-#second-frame #unregistered-user-profile .licenses-pane pre {
+#second-frame #unregistered-user-profile .licenses-pane pre,
+#second-frame #unregistered-user-items-feed .licenses-pane pre {
   font-size: 12px;
   line-height: 18px;
 }
 #second-frame #settings .licenses-pane .license-name,
-#second-frame #unregistered-user-profile .licenses-pane .license-name {
+#second-frame #unregistered-user-profile .licenses-pane .license-name,
+#second-frame #unregistered-user-items-feed .licenses-pane .license-name {
   font-size: 17px;
   padding-top: 14px;
   line-height: 20px;
@@ -1210,47 +1455,57 @@ img {
   margin-bottom: 30px;
 }
 #second-frame #settings .licenses-pane .license-container,
-#second-frame #unregistered-user-profile .licenses-pane .license-container {
+#second-frame #unregistered-user-profile .licenses-pane .license-container,
+#second-frame #unregistered-user-items-feed .licenses-pane .license-container {
   -webkit-flex: 1;
   height: 80%;
   padding-bottom: 50px;
 }
 #second-frame #settings .licenses-pane .license-container .license,
-#second-frame #unregistered-user-profile .licenses-pane .license-container .license {
+#second-frame #unregistered-user-profile .licenses-pane .license-container .license,
+#second-frame #unregistered-user-items-feed .licenses-pane .license-container .license {
   box-sizing: border-box;
   background-color: #EEEEEE;
   width: 100%;
   padding: 45px;
-  font-family: "EBGaramond-Regular", serif;
-  font-size: 17px;
-  line-height: 180%;
+  font-family: "Merriweather-Regular", serif;
+  font-size: 14px;
+  line-height: 190%;
   padding-top: 33px;
   padding-right: 56px;
 }
 #second-frame #settings .licenses-pane .license-container .license a,
-#second-frame #unregistered-user-profile .licenses-pane .license-container .license a {
+#second-frame #unregistered-user-profile .licenses-pane .license-container .license a,
+#second-frame #unregistered-user-items-feed .licenses-pane .license-container .license a {
   color: #333;
-  font-family: "SortsMillGoudy-Italic";
+  font-family: "Merriweather-Italic";
   text-decoration: underline;
 }
 #second-frame #settings .licenses-pane .license-container h1,
 #second-frame #unregistered-user-profile .licenses-pane .license-container h1,
+#second-frame #unregistered-user-items-feed .licenses-pane .license-container h1,
 #second-frame #settings .licenses-pane .license-container h2,
 #second-frame #unregistered-user-profile .licenses-pane .license-container h2,
+#second-frame #unregistered-user-items-feed .licenses-pane .license-container h2,
 #second-frame #settings .licenses-pane .license-container h3,
 #second-frame #unregistered-user-profile .licenses-pane .license-container h3,
+#second-frame #unregistered-user-items-feed .licenses-pane .license-container h3,
 #second-frame #settings .licenses-pane .license-container h4,
 #second-frame #unregistered-user-profile .licenses-pane .license-container h4,
+#second-frame #unregistered-user-items-feed .licenses-pane .license-container h4,
 #second-frame #settings .licenses-pane .license-container h5,
 #second-frame #unregistered-user-profile .licenses-pane .license-container h5,
+#second-frame #unregistered-user-items-feed .licenses-pane .license-container h5,
 #second-frame #settings .licenses-pane .license-container h6,
-#second-frame #unregistered-user-profile .licenses-pane .license-container h6 {
+#second-frame #unregistered-user-profile .licenses-pane .license-container h6,
+#second-frame #unregistered-user-items-feed .licenses-pane .license-container h6 {
   font-family: "SourceSansPro-Regular", "Arial Narrow Bold", sans-serif;
   margin-top: 30px;
   margin-left: -1px;
 }
 #second-frame #settings .licenses-pane .license-container h1,
-#second-frame #unregistered-user-profile .licenses-pane .license-container h1 {
+#second-frame #unregistered-user-profile .licenses-pane .license-container h1,
+#second-frame #unregistered-user-items-feed .licenses-pane .license-container h1 {
   margin-top: 15px;
 }
 #second-frame #saved-items-feed .subject-intro-box {
@@ -1284,12 +1539,22 @@ img {
   margin: 0 auto;
   display: -webkit-flex;
   min-height: 100%;
+  max-width: 1000px;
 }
-#second-frame #single-post .single-post-header {
-  margin-left: 25px;
+#second-frame #single-post .header-meta-intro {
+  color: #AAA;
+  margin-left: -62px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 10px;
+  margin-top: 30px;
+  width: 74px;
+  text-align: right;
 }
 #second-frame #single-post .single-post-header .header-meta-intro {
-  color: #999;
+  margin-bottom: 17px;
+  margin-top: 0;
 }
 #second-frame #single-post .single-post-header #header-text {
   font-size: 18px;
@@ -1298,8 +1563,22 @@ img {
   font-weight: normal;
   line-height: 130%;
   margin-top: 0;
-  margin-bottom: 20px;
+  margin-bottom: 0px;
   letter-spacing: 1px;
+  -webkit-user-select: text;
+  user-select: text;
+  margin-left: 25px;
+  cursor: pointer;
+  -webkit-transition: background-color ease 0.4s, color ease 0.4s;
+  border-radius: 3px;
+  padding: 10px 10px;
+  display: inline-block;
+  width: auto;
+  max-width: 100%;
+}
+#second-frame #single-post .single-post-header #header-text:hover {
+  background-color: #AAA;
+  color: #FFF;
 }
 #second-frame #single-post .centered-header-container {
   margin-left: 0;
@@ -1309,12 +1588,46 @@ img {
 }
 #second-frame #single-post .centered-header-container #header-text.centered-header-text {
   width: 100%;
+  -webkit-user-select: text;
+  user-select: text;
 }
 #second-frame #single-post .post-container {
   width: 100%;
 }
+#second-frame #single-post .post-container .parent-post .meta {
+  width: 94px;
+}
+#second-frame #single-post .post-container .parent-post .header-meta-intro {
+  cursor: pointer;
+  border-radius: 3px;
+  box-sizing: border-box;
+  padding-top: 2px;
+  padding-bottom: 0px;
+  padding-right: 5px;
+  -webkit-transition: background-color ease 0.4s, color ease 0.4s;
+  position: relative;
+  left: 6px;
+}
+#second-frame #single-post .post-container .parent-post .header-meta-intro .parent-caret {
+  width: 9px;
+}
+#second-frame #single-post .post-container .parent-post .header-meta-intro:hover {
+  background-color: #AAA;
+  color: #FFF;
+}
+#second-frame #single-post .post-container .text {
+  -webkit-user-select: text;
+  user-select: text;
+}
+#second-frame #single-post .post-container .text a,
+#second-frame #single-post .post-container .text a:visited,
+#second-frame #single-post .post-container .text a:focus,
+#second-frame #single-post .post-container .text a:hover {
+  color: #7f9999;
+}
 #second-frame #single-post .counters {
   margin-left: 25px;
+  color: #999;
 }
 #second-frame #single-post .centered-counters {
   margin-left: 0;
@@ -1323,12 +1636,15 @@ img {
 #second-frame #single-post .text {
   box-sizing: border-box;
   padding: 0 25px;
+  -webkit-user-select: text;
+  user-select: text;
 }
 #second-frame #single-post .centered {
   text-align: center;
 }
 #second-frame #single-post .pre-meta-container {
   display: -webkit-flex;
+  margin-bottom: 20px;
 }
 #second-frame #single-post .pre-meta-container .pre-meta {
   display: inline-block;
@@ -1341,13 +1657,15 @@ img {
   background-color: #EEEEEE;
   box-sizing: border-box;
   width: 100%;
-  padding: 25px 25px 35px 25px;
-  font-family: "EBGaramond-Regular", serif;
+  padding: 25px 25px 50px 25px;
+  font-family: "Merriweather-Regular", serif;
   color: #333;
-  font-size: 19px;
-  line-height: 160%;
+  font-size: 14px;
+  line-height: 190%;
   -webkit-user-select: text;
   user-select: text;
+  min-height: 200px;
+  cursor: text;
 }
 #second-frame #single-post .subject-body-entry:focus {
   outline: none;
@@ -1357,6 +1675,7 @@ img {
   height: 69px;
   box-sizing: border-box;
   padding: 15px 0;
+  margin: 25px auto;
 }
 #second-frame #single-post .meta-box .reply-create-button {
   display: inline-block;
@@ -1374,7 +1693,7 @@ img {
   background-color: #DDD;
 }
 #second-frame #single-post .meta-box .reply-create-button.post {
-  width: 200px;
+  width: 293px;
 }
 #second-frame #single-post .meta-box .reply-create-button.disabled {
   text-decoration: none;
@@ -1396,19 +1715,19 @@ img {
   padding-top: 135px;
 }
 #second-frame #single-post .text {
-  font-size: 19px;
-  line-height: 160%;
+  font-size: 14px;
+  line-height: 190%;
   width: 100%;
   margin-top: 5px;
 }
 #second-frame #single-post .meta {
-  margin: 0 auto;
+  margin-left: 20px;
   width: 126px;
   margin-top: 13px;
   margin-bottom: 30px;
 }
 #second-frame #home-feed .home-aether-name {
-  margin-top: 9px;
+  margin-top: 2px;
 }
 #second-frame #home-feed .header-container .home-column-1,
 #second-frame #home-feed .header-container .home-column-2,
@@ -1429,9 +1748,6 @@ img {
   -webkit-flex: 1;
   box-sizing: border-box;
   padding: 0 20px;
-}
-#second-frame #home-feed .info-bar .meta-info {
-  padding-left: 10px;
 }
 #second-frame #replies-feed .subject-intro-box {
   margin-top: 23px;
@@ -1457,7 +1773,7 @@ img {
   display: inline-block;
   line-height: 120%;
   margin-bottom: 30px;
-  color: #666;
+  color: #111;
 }
 #second-frame #unregistered-user-items-feed .items-feed-container {
   display: -webkit-flex;
@@ -1515,9 +1831,9 @@ img {
   display: -webkit-flex;
 }
 #second-frame #onboarding-feed .onboarding-container .onboarding-body-container .onboarding-body {
-  font-size: 22px;
-  line-height: 180%;
-  font-family: "EBGaramond-Regular", serif;
+  font-size: 14px;
+  line-height: 190%;
+  font-family: "Merriweather-Regular", serif;
   height: 80%;
 }
 #second-frame #onboarding-feed .onboarding-container .up-container,
@@ -1547,6 +1863,7 @@ img {
   font-size: 14px;
   height: 30px;
   margin-top: 10px;
+  overflow: hidden;
 }
 #second-frame #onboarding-feed .onboarding-container .down-container {
   padding-top: 19px;
@@ -1610,22 +1927,21 @@ img {
 #second-frame #onboarding-feed .license .onboarding-container .license-container::-webkit-scrollbar-thumb:vertical:active {
   background: #999;
   /* Some darker color when you click it */
-
 }
 #second-frame #onboarding-feed .license .onboarding-container .license-container .license {
   box-sizing: border-box;
   background-color: #EEEEEE;
   width: 100%;
   padding: 45px;
-  font-family: "EBGaramond-Regular", serif;
-  font-size: 17px;
-  line-height: 180%;
+  font-family: "Merriweather-Regular", serif;
+  font-size: 14px;
+  line-height: 190%;
   padding-top: 33px;
   padding-right: 56px;
 }
 #second-frame #onboarding-feed .license .onboarding-container .license-container .license a {
   color: #333;
-  font-family: "SortsMillGoudy-Italic", serif;
+  font-family: "Merriweather-Italic", serif;
   text-decoration: underline;
 }
 #second-frame #onboarding-feed .license .onboarding-container .license-container h1,
@@ -1642,9 +1958,9 @@ img {
   margin-top: 15px;
 }
 #second-frame #onboarding-feed .shorthand-license .onboarding-container .license-container {
-  font-size: 17px;
-  line-height: 158%;
-  font-family: "EBGaramond-Regular", serif;
+  font-size: 14px;
+  line-height: 190%;
+  font-family: "Merriweather-Regular", serif;
   height: 80%;
 }
 #second-frame #onboarding-feed .shorthand-license .onboarding-container .license-container .left-container,
@@ -1675,7 +1991,7 @@ img {
 }
 #second-frame #onboarding-feed .handle .onboarding-container .username-entry {
   font-size: 22px;
-  line-height: 170%;
+  line-height: 190%;
   font-family: "SourceSansPro-Regular", "Arial Narrow Bold", sans-serif;
   box-sizing: border-box;
   padding: 5px 15px 5px 10px;
@@ -1703,7 +2019,7 @@ img {
 }
 #second-frame #onboarding-feed .defaults .onboarding-container .textbox-container .text-entry {
   font-size: 15px;
-  line-height: 170%;
+  line-height: 190%;
   font-family: "SourceSansPro-Regular", "Arial Narrow Bold", sans-serif;
   box-sizing: border-box;
   padding: 8px 15px 7px 10px;
@@ -1729,7 +2045,7 @@ img {
   line-height: 27px;
 }
 #second-frame #onboarding-feed .defaults .onboarding-container .question-explanation {
-  color: #CCC;
+  color: #AAA;
   margin-left: 10px;
 }
 #second-frame #onboarding-feed .defaults .onboarding-container .radio-item-text {
@@ -1747,10 +2063,10 @@ img {
 }
 #second-frame #onboarding-feed .defaults .onboarding-container .aether-radio-set {
   margin-left: -4px;
-  margin-top: -10px;
 }
 #second-frame #onboarding-feed .defaults .onboarding-container .language-header {
   font-family: "SourceSansPro-Semibold", "Arial Narrow Bold", sans-serif;
+  overflow: hidden;
 }
 #second-frame #onboarding-feed .defaults .onboarding-container .possible-langs {
   margin-top: 9px;
@@ -1766,6 +2082,7 @@ img {
   display: inline-block;
   font-size: 14px;
   margin: 0 4px;
+  line-height: 245%;
 }
 #second-frame #onboarding-feed .defaults .onboarding-container .possible-langs .lang-button:hover {
   border-color: #111;
@@ -1783,8 +2100,8 @@ img {
 #second-frame #onboarding-feed .ethics .onboarding-container .left-column,
 #second-frame #onboarding-feed .ethics .onboarding-container .right-column {
   display: inline-block;
-  font-size: 17px;
-  line-height: 158%;
+  font-size: 14px;
+  line-height: 190%;
   float: left;
 }
 #second-frame #onboarding-feed .ethics .onboarding-container .left-column {
@@ -1834,10 +2151,10 @@ img {
 }
 #second-frame .post-item .content-area .digest,
 #second-frame .user-feed-post-item .content-area .digest {
-  font-family: "EBGaramond-Regular", serif;
-  font-size: 17px;
-  line-height: 160%;
-  white-space: pre-line;
+  font-family: "Merriweather-Regular", serif;
+  font-size: 14px;
+  line-height: 190%;
+  overflow: hidden;
 }
 #second-frame .post-item .content-area .owner-information,
 #second-frame .user-feed-post-item .content-area .owner-information {
@@ -1869,6 +2186,7 @@ img {
   font-weight: normal;
   line-height: 130%;
   margin-bottom: 10px;
+  overflow: hidden;
 }
 #second-frame .user-feed-post-item,
 #second-frame .user-feed-subject-item {
@@ -1918,6 +2236,7 @@ img {
   box-sizing: border-box;
   padding: 20px 17px 10px 17px;
   -webkit-transition: background-color ease 0.4s;
+  overflow: hidden;
 }
 #second-frame .topic-header-item:hover {
   background-color: #dff7f7;
@@ -1941,6 +2260,7 @@ img {
   display: block;
   margin-bottom: 10px;
   text-shadow: 0 2px 0 #FFF;
+  overflow: hidden;
 }
 #second-frame .topic-header-item .content-area .meta {
   line-height: 150%;
@@ -2004,8 +2324,11 @@ img {
   width: 100%;
 }
 #second-frame .subject-global-actions-box {
-  display: inline-block;
   margin-top: 7px;
+  margin-bottom: 65px;
+}
+#second-frame .date-picker-container {
+  float: right;
 }
 #second-frame .date-picker {
   display: inline-block;
@@ -2042,7 +2365,7 @@ img {
   font-size: 15px;
   -webkit-transition: background-color ease 0.4s, color ease 0.4s;
   box-sizing: border-box;
-  padding: 1px 0px 1px 4px;
+  padding: 1px 2px 2px 6px;
   border-radius: 3px;
   cursor: pointer;
   color: #999;
@@ -2068,6 +2391,7 @@ img {
 #second-frame #subject-header {
   width: 100%;
   position: relative;
+  overflow: hidden;
 }
 #second-frame #subject-header .meta {
   display: inline-block;
@@ -2087,7 +2411,10 @@ img {
   line-height: 140%;
   margin-bottom: 0;
   margin-top: 25px;
-  width: 80%;
+  width: 75%;
+  -webkit-user-select: text;
+  user-select: text;
+  overflow: hidden;
 }
 #second-frame #header-date {
   font-family: "SourceSansPro-Italic", "Arial Narrow Bold", sans-serif;
@@ -2108,6 +2435,7 @@ img {
   border-radius: 3px;
   cursor: pointer;
   color: #999;
+  overflow: hidden;
 }
 #second-frame #header-owner:hover {
   background-color: #AAA;
@@ -2130,9 +2458,8 @@ img {
   width: 90%;
   line-height: 160%;
   color: #333;
-  font-family: "EBGaramond-Regular", serif;
+  font-family: "Merriweather-Regular", serif;
   margin: 25px 0 10px 0;
-  white-space: pre-line;
 }
 #second-frame .counters {
   font-family: "Oswald-Bold", "Arial Narrow Bold", sans-serif;
@@ -2206,7 +2533,6 @@ img {
   cursor: pointer;
   -webkit-transition: color ease 0.4s, background-color ease 0.4s;
   margin: 0;
-  background-color: #fff;
   padding: 7px;
   display: inline-block;
   color: #111;
@@ -2222,7 +2548,6 @@ img {
   cursor: pointer;
   -webkit-transition: color ease 0.4s, background-color ease 0.4s;
   margin: 0;
-  background-color: #fff;
   padding: 7px;
   display: inline-block;
   color: #111;
@@ -2238,7 +2563,6 @@ img {
   cursor: pointer;
   -webkit-transition: color ease 0.4s, background-color ease 0.4s;
   margin: 0;
-  background-color: #fff;
   padding: 7px;
   display: inline-block;
   color: #111;
@@ -2254,7 +2578,6 @@ img {
   cursor: pointer;
   -webkit-transition: color ease 0.4s, background-color ease 0.4s;
   margin: 0;
-  background-color: #fff;
   padding: 7px;
   display: inline-block;
   color: #111;
@@ -2271,7 +2594,6 @@ img {
   cursor: pointer;
   -webkit-transition: color ease 0.4s, background-color ease 0.4s;
   margin: 0;
-  background-color: #fff;
   padding: 7px;
   display: inline-block;
   color: #111;
@@ -2287,7 +2609,6 @@ img {
   cursor: pointer;
   -webkit-transition: color ease 0.4s, background-color ease 0.4s;
   margin: 0;
-  background-color: #fff;
   padding: 7px;
   display: inline-block;
   color: #111;
@@ -2311,7 +2632,6 @@ img {
   cursor: pointer;
   -webkit-transition: color ease 0.4s, background-color ease 0.4s;
   margin: 0;
-  background-color: #fff;
   padding: 7px;
   display: inline-block;
   color: #111;
@@ -2328,9 +2648,9 @@ img {
 }
 #second-frame .aether-post .comment .text {
   margin-top: 0;
-  font-size: 19px;
-  line-height: 160%;
-  font-family: "EBGaramond-Regular", serif;
+  font-size: 14px;
+  line-height: 190%;
+  font-family: "Merriweather-Regular", serif;
   width: 90%;
 }
 #second-frame .aether-post .overline {
@@ -2341,48 +2661,65 @@ img {
 }
 #second-frame .aether-post ~ .aether-post .comment .text {
   margin-top: 0;
-  font-size: 19px;
-  line-height: 160%;
-  font-family: "EBGaramond-Regular", serif;
+  font-size: 14px;
+  line-height: 190%;
+  font-family: "Merriweather-Regular", serif;
   width: 90%;
 }
-#second-frame .comment {
-  margin-top: 30px;
+#second-frame .comment,
+#second-frame .markdown-settings-pane {
   box-sizing: border-box;
-  padding-top: 20px;
+  padding-top: 15px;
   width: 100%;
   position: relative;
+  padding-bottom: 25px;
 }
-#second-frame .comment .overline {
+#second-frame .comment .overline,
+#second-frame .markdown-settings-pane .overline {
   width: 90%;
   height: 1px;
   background-color: #CCC;
   position: relative;
   bottom: 15px;
 }
-#second-frame .comment .counters {
+#second-frame .comment .counters,
+#second-frame .markdown-settings-pane .counters {
   margin-top: 0;
   margin-bottom: 5px;
   color: #999;
 }
-#second-frame .comment .text {
+#second-frame .comment .text,
+#second-frame .markdown-settings-pane .text {
   margin-top: 12px;
-  font-size: 19px;
-  line-height: 160%;
-  font-family: "EBGaramond-Regular", serif;
+  font-size: 14px;
+  line-height: 190%;
+  font-family: "Merriweather-Regular", serif;
+  -webkit-user-select: text;
+  user-select: text;
 }
-#second-frame .comment .hide-icon {
+#second-frame .comment .text a,
+#second-frame .markdown-settings-pane .text a,
+#second-frame .comment .text a:visited,
+#second-frame .markdown-settings-pane .text a:visited,
+#second-frame .comment .text a:focus,
+#second-frame .markdown-settings-pane .text a:focus,
+#second-frame .comment .text a:hover,
+#second-frame .markdown-settings-pane .text a:hover {
+  color: #7f9999;
+}
+#second-frame .comment .hide-icon,
+#second-frame .markdown-settings-pane .hide-icon {
   position: relative;
   left: 3px;
   bottom: 1px;
   color: white;
 }
 #second-frame .comment-hidden {
-  margin-top: 30px;
   box-sizing: border-box;
-  padding-top: 20px;
+  padding-top: 15px;
   width: 100%;
   position: relative;
+  padding-bottom: 25px;
   padding-top: 18px;
   margin-bottom: -18px;
 }
@@ -2400,9 +2737,17 @@ img {
 }
 #second-frame .comment-hidden .text {
   margin-top: 12px;
-  font-size: 19px;
-  line-height: 160%;
-  font-family: "EBGaramond-Regular", serif;
+  font-size: 14px;
+  line-height: 190%;
+  font-family: "Merriweather-Regular", serif;
+  -webkit-user-select: text;
+  user-select: text;
+}
+#second-frame .comment-hidden .text a,
+#second-frame .comment-hidden .text a:visited,
+#second-frame .comment-hidden .text a:focus,
+#second-frame .comment-hidden .text a:hover {
+  color: #7f9999;
 }
 #second-frame .comment-hidden .hide-icon {
   position: relative;
@@ -2443,23 +2788,30 @@ img {
   top: 50%;
   margin-top: -50px;
 }
+#second-frame .topic-block .topic-block-header h1 {
+  font-family: "Oswald-Bold", "Arial Narrow Bold", sans-serif;
+  font-size: 24px;
+  color: #111;
+  padding: 7px 15px;
+  letter-spacing: 2px;
+  border-radius: 1px;
+  margin-bottom: 20px;
+  margin-left: 13px;
+  border-bottom: 1px solid #DDD;
+  display: block;
+  box-sizing: border-box;
+  padding-bottom: 14px;
+  width: 96%;
+  padding-left: 0;
+  overflow: hidden;
+}
 #second-frame .topic-block-header {
   margin-bottom: 10px;
-}
-#second-frame .topic-block-header h1 {
-  font-family: "SourceSansPro-Black", "Arial Narrow Bold", sans-serif;
-  font-size: 19px;
-  color: #333;
-  border-left: 3px solid #333;
-  border-right: 3px solid #333;
-  box-sizing: border-box;
-  padding: 13px 0 10px 0;
-  letter-spacing: 2px;
-  background-color: #eee;
-  padding-left: 10px;
+  overflow: hidden;
 }
 #second-frame .topic-block {
   margin-top: 0;
+  margin-bottom: 40px;
 }
 #third-frame {
   overflow: auto;
@@ -2577,10 +2929,40 @@ img {
   -webkit-flex-direction: column;
   min-height: 100%;
 }
+#third-frame #third-frame-contents #create-feed-lite.create-feed-lite-fullscreen {
+  background-color: #eee;
+}
+#third-frame #third-frame-contents #create-feed-lite.create-feed-lite-fullscreen .post-item.replied-to-post-item {
+  width: 75%;
+  border: none;
+  padding: 30px 25px;
+}
+#third-frame #third-frame-contents #create-feed-lite.create-feed-lite-fullscreen .create-box,
+#third-frame #third-frame-contents #create-feed-lite.create-feed-lite-fullscreen .create-buttons {
+  width: 75%;
+  margin: 0 auto;
+  max-width: 1000px;
+  box-sizing: border-box;
+}
+#third-frame #third-frame-contents #create-feed-lite.create-feed-lite-fullscreen .create-box {
+  min-height: 200px;
+}
+#third-frame #third-frame-contents #create-feed-lite.create-feed-lite-fullscreen .create-buttons {
+  margin: 50px auto 25px auto;
+}
+#third-frame #third-frame-contents #create-feed-lite.create-feed-lite-fullscreen .create-button.reply {
+  margin-left: 0;
+}
 #third-frame #third-frame-contents #create-feed-lite .post-item,
 #third-frame #third-frame-contents #create-feed-lite .subject-item {
   overflow: hidden;
   border-left: 15px solid #EEEEEE;
+}
+#third-frame #third-frame-contents #create-feed-lite .post-item.replied-to-post-item {
+  cursor: default;
+  margin: 0 auto;
+  max-width: 1000px;
+  transition: none;
 }
 #third-frame #third-frame-contents #create-feed-lite .subject-item .subject-meta {
   text-align: left;
@@ -2592,6 +2974,7 @@ img {
   border-bottom: 0;
   position: static;
   width: 100%;
+  overflow: hidden;
 }
 #third-frame #third-frame-contents #create-feed-lite #third-frame-header .enlarge-icon {
   color: white;
@@ -2621,19 +3004,20 @@ img {
   box-sizing: border-box;
   width: 100%;
   padding: 20px;
-  font-family: "EBGaramond-Regular", serif;
+  font-family: "Merriweather-Regular", serif;
   color: #333;
-  font-size: 19px;
-  line-height: 160%;
+  font-size: 14px;
+  line-height: 190%;
   display: inline-block;
   -webkit-flex: 1;
-  white-space: pre-line;
   letter-spacing: 0;
   -webkit-user-select: text;
   user-select: text;
   -webkit-appearance: none;
   border: none;
   margin: 0;
+  padding-bottom: 50px;
+  cursor: text;
 }
 #third-frame #third-frame-contents #create-feed-lite .create-box:focus {
   outline: none;
@@ -2668,7 +3052,7 @@ img {
   background-color: #FFF;
 }
 #third-frame #third-frame-contents #create-feed-lite .create-buttons .create-button.reply {
-  width: 295px;
+  width: 293px;
   margin-right: 1px;
 }
 #third-frame #third-frame-contents #create-feed-lite .create-buttons .create-button.disabled {
@@ -2681,9 +3065,9 @@ img {
   background-color: #333;
 }
 #third-frame #third-frame-contents .create-feed-lite-fullscreen .create-box {
-  padding: 24px 30% 15px 25px !important;
-  font-size: 22px !important;
-  line-height: 150% !important;
+  padding: 24px 24px 0px 25px !important;
+  font-size: 14px !important;
+  line-height: 190% !important;
 }
 #third-frame #third-frame-contents #subjects-feed-lite .go-to-topics-icon {
   color: white;
@@ -2712,6 +3096,7 @@ img {
   -webkit-transition: background-color, 0.5s;
   background-color: #111;
   color: #666;
+  overflow: hidden;
 }
 #third-frame #third-frame-contents #settings-selector-feed-lite .settings-header-item:hover {
   background-color: #dff7f7;
@@ -2741,6 +3126,13 @@ img {
   margin-right: 0;
   width: 25px;
 }
+#third-frame #third-frame-contents #create-feed-lite .subject-item:hover {
+  background-color: #FFF;
+  cursor: default;
+}
+#third-frame #third-frame-contents #create-feed-lite .subject-item .subject-headline {
+  font-size: 17px;
+}
 #third-frame #third-frame-contents .subject-item {
   box-sizing: border-box;
   padding: 10px 12px 7px 12px;
@@ -2761,14 +3153,14 @@ img {
 }
 #third-frame #third-frame-contents .subject-item .subject-headline {
   display: inline-block;
-  line-height: 170%;
+  line-height: 190%;
   width: 100%;
   font-family: "Oswald-Regular", "Arial Narrow Bold", sans-serif;
   font-size: 13px;
   margin-bottom: 5px;
 }
 #third-frame #third-frame-contents .subject-item .subject-owner {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 140%;
   width: 100%;
   font-family: "SourceSansPro-Bold", "Arial Narrow Bold", sans-serif;
@@ -2776,16 +3168,16 @@ img {
 }
 #third-frame #third-frame-contents .subject-item .subject-timestamp {
   display: inline-block;
+  font-size: 14px;
   line-height: 140%;
   width: 100%;
   font-family: "SourceSansPro-Italic", "Arial Narrow Bold", sans-serif;
-  font-size: 13px;
   display: inline;
   line-height: 21px;
 }
 #third-frame #third-frame-contents .subject-item .subject-meta {
   display: inline-block;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 140%;
   width: 100%;
   display: inline;
@@ -2819,6 +3211,7 @@ img {
   border-bottom: 1px solid #DDD;
   background-color: #111;
   color: #FFF;
+  overflow: hidden;
 }
 #third-frame #third-frame-header #third-frame-header-text {
   font-size: 11px;
@@ -2845,11 +3238,19 @@ img {
 .subjects-full-size-for-no-items {
   height: 100%;
 }
+#subjects-feed .subject-owner,
+#saved-items-feed .subject-owner,
+#replies-feed .subject-owner,
+#unregistered-user-profile .subject-owner {
+  font-family: "SourceSansPro-SemiboldItalic", "Arial Narrow Bold", sans-serif;
+  color: #999;
+}
 #subjects-feed #subject-header,
 #saved-items-feed #subject-header,
 #replies-feed #subject-header,
 #unregistered-user-profile #subject-header {
-  color: #666;
+  color: #111;
+  overflow: hidden;
 }
 #subjects-feed .subject-global-actions-box .date-picker:hover,
 #saved-items-feed .subject-global-actions-box .date-picker:hover,
@@ -2892,6 +3293,7 @@ img {
   color: #333;
   font-size: 24px;
   letter-spacing: 1px;
+  overflow: hidden;
 }
 #subjects-feed #subjects-no-item-container #footer,
 #saved-items-feed #subjects-no-item-container #footer,
@@ -2916,7 +3318,7 @@ img {
 #unregistered-user-profile #subjects-no-item-container .error-text {
   text-align: center;
   font-size: 14px;
-  line-height: 170%;
+  line-height: 190%;
   width: 70%;
   color: #999;
   margin: 0 auto;
@@ -2989,16 +3391,17 @@ img {
   display: inline-block;
   line-height: 120%;
   margin-bottom: 5px;
+  overflow: hidden;
 }
 #subjects-feed .subject-item,
 #saved-items-feed .subject-item,
 #replies-feed .subject-item,
 #unregistered-user-profile .subject-item {
+  background-color: #FFF;
   box-sizing: border-box;
   display: inline-block;
   border-bottom-left-radius: 1px;
   border-bottom-right-radius: 1px;
-  border-top: 3px solid #DDD;
   width: 100%;
 }
 #subjects-feed .subject-item .subject-owner,
@@ -3016,6 +3419,7 @@ img {
   height: 20px;
   background-color: #EEE;
   display: none;
+  overflow: hidden;
 }
 #subjects-feed .subject-item .content-area,
 #saved-items-feed .subject-item .content-area,
@@ -3032,6 +3436,50 @@ img {
 #unregistered-user-profile .subject-item .content-area:hover {
   background-color: #dff7f7;
 }
+#subjects-feed .subject-item.multi-col .content-area,
+#saved-items-feed .subject-item.multi-col .content-area,
+#replies-feed .subject-item.multi-col .content-area,
+#unregistered-user-profile .subject-item.multi-col .content-area {
+  padding: 20px 17px 10px 17px;
+}
+#subjects-feed .subject-item.multi-col .header,
+#saved-items-feed .subject-item.multi-col .header,
+#replies-feed .subject-item.multi-col .header,
+#unregistered-user-profile .subject-item.multi-col .header {
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+#subjects-feed .subject-item.multi-col .owner-information,
+#saved-items-feed .subject-item.multi-col .owner-information,
+#replies-feed .subject-item.multi-col .owner-information,
+#unregistered-user-profile .subject-item.multi-col .owner-information {
+  margin-bottom: 0;
+}
+#subjects-feed .subject-item.multi-col .owner-information .subject-owner,
+#saved-items-feed .subject-item.multi-col .owner-information .subject-owner,
+#replies-feed .subject-item.multi-col .owner-information .subject-owner,
+#unregistered-user-profile .subject-item.multi-col .owner-information .subject-owner {
+  color: #CCC;
+  text-shadow: 0 1px 0 #FFF;
+  font-family: "SourceSansPro-Semibold", "Arial Narrow Bold", sans-serif;
+  font-size: 14px;
+}
+#subjects-feed .subject-item.multi-col .meta,
+#saved-items-feed .subject-item.multi-col .meta,
+#replies-feed .subject-item.multi-col .meta,
+#unregistered-user-profile .subject-item.multi-col .meta {
+  margin-bottom: 5px;
+  margin-top: 0;
+}
+#subjects-feed .subject-item.multi-col .meta .time,
+#saved-items-feed .subject-item.multi-col .meta .time,
+#replies-feed .subject-item.multi-col .meta .time,
+#unregistered-user-profile .subject-item.multi-col .meta .time {
+  float: none;
+  font-family: "SourceSansPro-Italic", "Arial Narrow Bold", sans-serif;
+  padding-left: 10px;
+  font-size: 15px;
+}
 #subjects-feed .subject-item .meta,
 #saved-items-feed .subject-item .meta,
 #replies-feed .subject-item .meta,
@@ -3041,7 +3489,7 @@ img {
   box-sizing: border-box;
   margin-top: 8px;
   padding: 0;
-  color: #999;
+  color: #CCC;
 }
 #subjects-feed .subject-item .meta .counters,
 #saved-items-feed .subject-item .meta .counters,
@@ -3056,7 +3504,6 @@ img {
 #unregistered-user-profile .subject-item .meta .time {
   float: right;
   display: inline-block;
-  color: #999;
   font-family: "SourceSansPro-Regular", "Arial Narrow Bold", sans-serif;
   line-height: 16px;
   padding-top: 2px;
@@ -3074,11 +3521,16 @@ img {
 #saved-items-feed .subject-item .header,
 #replies-feed .subject-item .header,
 #unregistered-user-profile .subject-item .header {
-  font-size: 18px;
-  color: #111;
-  font-family: "SourceSansPro-Bold", "Arial Narrow Bold", sans-serif;
   margin-top: 5px;
-  line-height: 130%;
+  overflow: hidden;
+  font-size: 17px;
+  color: #444;
+  font-family: "Oswald-Bold", "Arial Narrow Bold", sans-serif;
+  font-weight: normal;
+  line-height: 145%;
+  display: block;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 0 #FFF;
 }
 #subjects-feed .subject-item .digest,
 #saved-items-feed .subject-item .digest,
@@ -3089,6 +3541,7 @@ img {
   margin-bottom: 30px;
   margin-right: 5px;
   line-height: 160%;
+  overflow: hidden;
 }
 #subjects-feed .mini-size,
 #saved-items-feed .mini-size,
@@ -3143,9 +3596,24 @@ img {
 }
 #reading-list-feed-lite .post-excerpt,
 #create-feed-lite .post-excerpt {
-  font-family: "EBGaramond-Regular", serif;
-  font-size: 16px;
-  line-height: 140%;
+  font-family: "Merriweather-Regular", serif;
+  font-size: 14px;
+  line-height: 190%;
+  -webkit-user-select: text;
+  user-select: text;
+}
+#reading-list-feed-lite .post-excerpt p:last-of-type + hr,
+#create-feed-lite .post-excerpt p:last-of-type + hr {
+  display: none;
+}
+#reading-list-feed-lite .post-excerpt hr,
+#create-feed-lite .post-excerpt hr {
+  border: none;
+  border-top: 1px solid #DDD;
+}
+#reading-list-feed-lite .post-excerpt a,
+#create-feed-lite .post-excerpt a {
+  color: #7f9999;
 }
 #reading-list-feed-lite .post-meta .counters,
 #create-feed-lite .post-meta .counters,
@@ -3173,9 +3641,9 @@ img {
 }
 #reading-list-feed-lite .post-meta .post-owner-text,
 #create-feed-lite .post-meta .post-owner-text {
-  margin-left: -2px;
+  margin-left: 6px;
   display: inline-block;
-  font-size: 13px;
+  font-size: 14px;
 }
 #reading-list-feed-lite .subject-meta .subject-owner,
 #create-feed-lite .subject-meta .subject-owner {
@@ -3184,6 +3652,10 @@ img {
 #reading-list-feed-lite .subject-timestamp,
 #create-feed-lite .subject-timestamp {
   margin-right: 10px;
+}
+#posts-feed #subject-header {
+  margin-bottom: 40px;
+  overflow: hidden;
 }
 #posts-feed .comment-datetime,
 #single-post .comment-datetime {
@@ -3229,7 +3701,7 @@ img {
   cursor: pointer;
   border: 2px solid #111;
   color: #111;
-  font-family: "EBGaramond-Regular", serif;
+  font-family: "Merriweather-Regular", serif;
   font-size: 22px;
   padding: 10px 5px;
   letter-spacing: -1px;
@@ -3366,14 +3838,13 @@ img {
   font-size: 27px;
 }
 .info-bar {
-  margin-top: 16px;
   width: 100%;
-  border-left: 3px solid #111;
-  border-right: 3px solid #111;
-  padding-top: 20px;
-  padding-bottom: 12px;
   background-color: #dff7f7;
   box-sizing: border-box;
+  margin-top: 15px;
+  margin-bottom: 30px;
+  padding-top: 20px;
+  padding-bottom: 20px;
 }
 .info-bar .right-leaning {
   float: right;
@@ -3480,6 +3951,7 @@ img {
   border-bottom: 0;
   position: fixed;
   z-index: 2;
+  overflow: hidden;
 }
 #third-frame-header-space-holder {
   height: 26px;
@@ -3527,6 +3999,7 @@ img {
 }
 .saved-items-feed-header {
   width: 55% !important;
+  overflow: hidden;
 }
 #saved-items-feed .mark-all-as-read-button {
   margin-right: 5px;
@@ -3542,7 +4015,8 @@ img {
   display: inline-block;
   line-height: 120%;
   margin-bottom: 5px;
-  color: #666;
+  color: #111;
+  overflow: hidden;
 }
 #find-or-create-topic-feed .subject-intro-box {
   width: 20%;
@@ -3550,9 +4024,9 @@ img {
 }
 #find-or-create-topic-feed .explanation {
   margin-top: 15px;
-  font-family: EBGaramond-Regular, serif;
-  font-size: 18px;
-  line-height: 27px;
+  font-family: Merriweather-Regular, serif;
+  font-size: 14px;
+  line-height: 190%;
   margin-right: 20px;
 }
 .view-type-box {
@@ -3584,7 +4058,7 @@ img {
   box-sizing: border-box;
   width: 93%;
   font-size: 15px;
-  line-height: 170%;
+  line-height: 190%;
   font-family: "SourceSansPro-Semibold", "Arial Narrow Bold", sans-serif;
   padding: 8px 15px 7px 10px;
   display: inline-block;
@@ -3599,18 +4073,44 @@ img {
   font-size: 17px;
   font-family: "Oswald-Regular", "Arial Narrow Bold", sans-serif;
   display: inline-block;
+  overflow: hidden;
+}
+#subjects-feed .subscribe-container {
+  margin-right: 15px;
+  display: inline-block;
+}
+#subjects-feed .board-top-actions-container {
+  margin-right: 3px;
+}
+#subjects-feed .subscribe-button {
+  display: inline-block;
+  color: #111;
+  border: 2px solid #111;
+  background-color: #FFF;
+  font-family: "SourceSansPro-Black", "Arial Narrow Bold", sans-serif;
+  box-sizing: border-box;
+  padding: 2px 3px 1px 3px;
+  line-height: 14px;
+  -webkit-transition: background-color ease 0.4s, color ease 0.4s, border-color ease 0.4s;
+  cursor: pointer;
+  font-size: 12px;
+  position: relative;
+  top: 1px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+#subjects-feed .subscribe-button:hover {
+  background-color: #111;
+  color: #FFF;
+  border-color: #111;
 }
 #subjects-feed .subject-item.single-column {
   margin-bottom: 0;
-  border: 3px solid #ddd;
-  border-width: 3px 0 0 0;
+  box-sizing: border-box;
 }
 #subjects-feed .subject-item.single-column .content-area {
-  padding-top: 3px;
-  padding-right: 10px;
-  padding-left: 15px;
-  padding-bottom: 1px;
   background-color: #FFF;
+  padding: 26px 17px 1px 17px;
 }
 #subjects-feed .subject-item.single-column .content-area:hover {
   background-color: #dff7f7;
@@ -3629,7 +4129,7 @@ img {
   line-height: 130%;
   padding-bottom: 5px;
   margin-bottom: 0;
-  margin-top: 18px;
+  overflow: hidden;
 }
 #subjects-feed .subject-item.single-column .content-area .meta {
   background-color: transparent;
@@ -3638,7 +4138,7 @@ img {
   margin-bottom: 10px;
 }
 #subjects-feed .subject-item.single-column .content-area .digest {
-  margin-bottom: 20px;
+  overflow: hidden;
 }
 #subjects-feed .subject-item.single-column .content-area .digest .inline-owner {
   background-color: transparent;
@@ -3664,11 +4164,11 @@ img {
 .comment .meta {
   display: inline-block;
   position: absolute;
-  top: 16px;
+  top: 9px;
   right: 10%;
 }
 .onboarding-screenshot-image {
-  width: 269px;
+  width: 275px;
   margin: 0 auto;
   display: block;
 }
@@ -3687,17 +4187,100 @@ img {
   display: inline-block;
   margin-top: 45px;
 }
+.markdown-body {
+  width: 100%;
+  display: -webkit-flex;
+  margin-top: 25px;
+}
+.markdown-body #raw-container,
+.markdown-body #markdown-container {
+  -webkit-flex: 1;
+  padding: 25px;
+  background-color: #EEE;
+  box-sizing: border-box;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.markdown-body #raw-container {
+  margin-right: 10px;
+  white-space: pre;
+  line-height: 175%;
+}
+.markdown-body #markdown-container {
+  margin-left: 10px;
+}
+.markdown-body #markdown-container a {
+  color: #7f9999 !important;
+}
+.markdown-body #markdown-container p {
+  margin: 20px 0 !important;
+  line-height: 190% !important;
+  font-size: 14px;
+  font-family: "Merriweather-Regular", serif;
+}
+.markdown-body #markdown-container h1,
+.markdown-body #markdown-container h2,
+.markdown-body #markdown-container h3 {
+  margin: 20px 0 !important;
+  line-height: 170% !important;
+  font-family: "Merriweather-Regular" !important;
+}
+.markdown-body #markdown-container h1 {
+  font-size: 28px !important;
+}
+.markdown-body #markdown-container h2 {
+  font-size: 21px !important;
+}
+.markdown-body #markdown-container h3 {
+  font-family: "Merriweather-BoldItalic" !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 16px !important;
+  padding: 0 !important;
+}
+.markdown-body #markdown-container em {
+  font-family: "Merriweather-Italic" !important;
+}
+.markdown-body #markdown-container strong {
+  font-family: "Merriweather-Heavy" !important;
+}
+.markdown-body #markdown-container em strong,
+.markdown-body #markdown-container strong em {
+  font-family: "Merriweather-HeavyItalic" !important;
+}
+.markdown-body #markdown-container hr {
+  border: none !important;
+  border-top: 1px solid #DDD !important;
+}
+.markdown-body #markdown-container p:first-of-type {
+  margin-top: 0 !important;
+}
+.markdown-body #markdown-container p:last-of-type {
+  margin-bottom: 0 !important;
+}
+.markdown-body #markdown-container p:last-of-type + hr {
+  display: none !important;
+}
+.markdown-body #markdown-container blockquote {
+  border-left: 4px solid #DDD !important;
+  padding-left: 15px !important;
+  color: #999 !important;
+  margin: 22px 0 !important;
+}
+.markdown-body #markdown-container li {
+  margin-bottom: 10px !important;
+}
 .tutorial-body {
-  width: 70%;
+  width: 85%;
 }
 .tutorial-body p {
-  font-family: "EBGaramond-Regular", serif;
-  font-size: 18px;
-  line-height: 180%;
+  font-family: "Merriweather-Regular", serif;
+  font-size: 14px;
+  line-height: 190%;
 }
 .tutorial-body a,
 .tutorial-body a:visited {
-  color: #9cadad;
+  color: #7f9999;
 }
 .tutorial-body .tutorial-image {
   width: 100%;

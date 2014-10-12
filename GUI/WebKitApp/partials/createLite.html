@@ -2,9 +2,10 @@
     ng-class="{'create-feed-lite-fullscreen':createPaneIsFullscreen}">
     <div id="third-frame-header">
         <h1 id="third-frame-header-text">
-            You are Replying to:
+            Reply
         </h1>
-        <i class="fa fa-expand enlarge-icon" ng-click="togglePaneSize()"></i>
+        <i class="fa fa-expand enlarge-icon" ng-click="togglePaneSize()" ng-show="!createPaneIsFullscreen"></i>
+        <i class="fa fa-compress enlarge-icon" ng-click="togglePaneSize()" ng-show="createPaneIsFullscreen"></i>
     </div>
     <div class="subject-item selected" ng-show="parentIsSubject">
         <span class="subject-headline">
@@ -17,7 +18,7 @@
             </span>
             <div class="counters">
                 <span class="subject-timestamp">
-                    {{ targetPostObject.CreationDate + '000' | date:'MMMM d EEEE, H:mm' }}
+                    {{ targetPostObject.CreationDate + '000' | date:'MMMM d yyyy, H:mm' }}
                 </span>
                 <i class="fa fa-arrow-up upvote-counter-icon">
                 </i>
@@ -29,19 +30,24 @@
         </span>
     </div>
 
-    <div class="post-item selected" ng-hide="parentIsSubject">
+    <div class="post-item selected replied-to-post-item" ng-hide="parentIsSubject">
         <div class="post-meta">
             <div class="counters">
                 <i class="fa fa-arrow-up upvote-counter-icon"></i>
                 {{ targetPostObject.UpvoteCount }}
             </div>
             <div class="post-owner">
-                <img src="img/aethersign.icon.slimmer.svg" alt="" class="header-aether-sign">
+                <!--<img src="img/aethersign.icon.slimmer.svg" alt="" class="header-aether-sign">-->
                 <div class="post-owner-text">{{ targetPostObject.OwnerUsername }}</div>
             </div>
         </div>
-        <div class="post-excerpt">
-            {{ targetPostObject.Body | truncate:160 }}
+        <div class="post-excerpt"
+             ng-bind-html="targetPostObject.Body | truncate:160"
+             ng-show="!createPaneIsFullscreen">
+        </div>
+        <div class="post-excerpt"
+             ng-bind-html="targetPostObject.Body"
+             ng-show="createPaneIsFullscreen">
         </div>
     </div>
 
@@ -52,4 +58,5 @@
         ng-class="{'disabled':postButtonDisabled}">REPLY</div>
         <div  class="create-button cancel" ng-click="closeReplyPane()">Cancel</div>
     </div>
+    <div class="scrolling-target"></div>
 </div>

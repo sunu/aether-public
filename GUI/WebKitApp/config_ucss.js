@@ -3,7 +3,6 @@ module.exports = {
         "crawl": "index.html",
         "include": [
                     "partials/createLite.html",
-                    "partials/userProfile.html",
                     "partials/homeFeed.html",
                     "partials/savedItemsFeed.html",
                     "partials/singlePost.html",

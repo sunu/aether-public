@@ -34,15 +34,13 @@
                 <div class="license">
                     <title>End User License Agreement</title>
 
-                    </head>
-                    <body>
                     <h1>End User License Agreement</h1>
 
-                    <p>Copyright &copy; 2013-2014 Burak Nehbit. All rights reserved.</p>
+                    <p>Copyright &copy; 2012-2014 Burak Nehbit. All rights reserved.</p>
 
                     <p>By accepting this agreement or by installing Aether (the “Software”), you agree to the following terms.</p>
 
-                    <p>These terms will be governed by and construed in accordance with the laws of State of California, The United States of America, without regard to conflicts of law rules.</p>
+                    <p>These terms will be governed by and construed in accordance with the laws of State of California, The United States of America, without regard to conflicts of law.</p>
 
                     <h2>License to use the Software</h2>
 
@@ -171,7 +169,7 @@
                     <p class="field-name">
                         I WANT TO BE KNOWN AS
                     </p>
-                    <input type="text" class="username-entry" ng-model="userProfile.UserDetails.Username"
+                    <input type="text" class="username-entry" ng-model="userProfile.userDetails.username"
                     maxlength="25">
                     <p>You can pick anything you want. You can also change it any time. Names are not unique; someone else can take the same name as you.</p>
                     <p>This also means you should not trust other users, as they might or might not be the people they say they are.</p>
@@ -182,8 +180,8 @@
             </div>
             <div class="down-container">
                 <div class="aether-button incremental-next-button"
-                ng-class="{'aether-button-disabled': userProfile.UserDetails.Username.length<3}"
-                ng-click="userProfile.UserDetails.Username.length<3 || advanceState()">Next</div>
+                ng-class="{'aether-button-disabled': userProfile.userDetails.username.length<3}"
+                ng-click="userProfile.userDetails.username.length<3 || advanceState()">Next</div>
             </div>
         </div>
     </div>
@@ -201,7 +199,7 @@
                         <tr>
                             <td>
                                 <div class="defaults-question" ng-show="PLATFORM != 'WIN'">
-                                    <span class="question-name">Open in background at startup</span><span class="question-explanation">This increases the amount of things you see.</span>
+                                    <span class="question-name">Open at startup</span><span class="question-explanation">This increases the amount of things you see.</span>
                                     <form class="aether-radio-set" action="">
                                         <input type="radio" class="aether-radio-item" name="openAtStartup" id="openAtStartup" value="Yes" checked="checked"><span class="radio-item-text">YES</span>
                                         <input type="radio" class="aether-radio-item" name="openAtStartup" value="No"><span class="radio-item-text">NO</span>
@@ -209,6 +207,7 @@
                                 </div>
                             </td>
                         </tr>
+
                         <tr>
                             <td>
                                 <div class="defaults-question">
@@ -258,20 +257,22 @@
                         <tr>
                             <td>
                                 <div class="defaults-question">
-                                    <span class="question-name">Optional starting point</span><span class="question-explanation">If you know a friend currently using Aether and is online now, add it here.</span>
-                                    <div class="textbox-container">
-                                        <p class="field-name">
-                                            IP ADDRESS (Ex: 192.168.0.1)
-                                        </p>
-                                        <input type="text" class="text-entry" ng-model="optionalBootstrapNodeIP"
-                                        maxlength="22">
-                                    </div>
-                                    <div class="textbox-container">
-                                        <p class="field-name">
-                                            PORT (Ex: 45212)
-                                        </p>
-                                        <input type="text" class="text-entry" ng-model="optionalBootStrapNodePort"
-                                        maxlength="5">
+                                    <span class="question-name">Starting point</span><span class="question-explanation">Your client needs a bootstrapper to kick things off. This can be anybody using Aether who is online right now. If you want to use the default bootstrapper, leave the fields blank. If you want to use someone else (default bootstrapper is down, etc.), enter it below. </span>
+                                    <div>
+                                        <div class="textbox-container">
+                                            <p class="field-name">
+                                                IP ADDRESS (Ex: 192.168.0.1)
+                                            </p>
+                                            <input type="text" class="text-entry" ng-model="optionalBootstrapNodeIP"
+                                            maxlength="22">
+                                        </div>
+                                        <div class="textbox-container">
+                                            <p class="field-name">
+                                                PORT (Ex: 45212)
+                                            </p>
+                                            <input type="text" class="text-entry" ng-model="optionalBootStrapNodePort"
+                                            maxlength="5">
+                                        </div>
                                     </div>
                                 </div>
                             </td>
@@ -304,8 +305,7 @@
                     <div class="right-column">
                         <p class="tutorial-text"><em>2</em> After you select your boards, go to threads view ( <i class="fa fa-bars"></i> ). This view shows what's inside the boards you just selected.</p>
                         <img src="img/onboarding-scrshot-2.png" class="onboarding-screenshot-image" alt=""/>
-                        <p class="tutorial-text final-text"><em>If you ever get stuck, you can hover over buttons to get an explanation. Aether has quite a few more tricks up in its sleeve for your to discover, and more are added day by day.<br><br>
-                            You can find a more in-depth tutorial at the 'Tutorial' menu of Settings ( <i class="fa fa-cog"></i> ). Enjoy!</em></p>
+                        <p class="tutorial-text">If you ever get stuck, you can hover over buttons to get an explanation. You can find a more in-depth tutorial at the 'Tutorial' menu of Settings ( <i class="fa fa-cog"></i> ). Enjoy!</p>
                     </div>
 
                 </div>

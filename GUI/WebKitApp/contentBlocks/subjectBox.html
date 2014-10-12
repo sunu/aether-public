@@ -1,25 +1,7 @@
-<div class="subject-item" ng-click="changeState('postsFeed', 'subjectsFeedLite', subject.PostFingerprint)">
+<div class="subject-item multi-col" ng-click="changeState('postsFeed', 'subjectsFeedLite', subject.PostFingerprint)"
+        id="post-{{subject.PostFingerprint}}">
     <div class="header-bar"></div>
     <div class="content-area">
-        <div class="header">
-            {{ subject.Subject }}
-        </div>
-        <div class="owner-information">
-            <span class="subject-owner">
-                <!--<img src="img/aethersign.icon.slimmer.svg" alt="" class="header-aether-sign">-->
-                {{ subject.OwnerUsername }}
-            </span>
-        </div>
-        <div class="digest" ng-show="subject.FirstPostBody">
-            <div class="inline-owner">
-            <!--<img src="img/aethersign.icon.slimmer.svg" alt="" class="header-aether-sign">-->
-                <span class="owner-name">
-                    {{ subject.FirstPostOwner }}
-                </span>
-            </div>
-            {{ subject.FirstPostBody | truncate:400 }}
-
-        </div>
         <div class="meta">
             <div class="counters">
                 <i class="fa fa-arrow-up upvote-counter-icon">
@@ -33,5 +15,25 @@
                 {{ subject.CreationDate + '000' | date:'MMM d, H:mm' }}
             </div>
         </div>
+        <div class="header">
+            {{ subject.Subject }}
+        </div>
+        <div class="owner-information">
+            <span class="subject-owner">
+                <!--<img src="img/aethersign.icon.slimmer.svg" alt="" class="header-aether-sign">-->
+                {{ subject.OwnerUsername }}
+            </span>
+        </div>
+        <!--<div class="digest" ng-show="subject.FirstPostBody">-->
+            <!--<div class="inline-owner">-->
+            <!--&lt;!&ndash;<img src="img/aethersign.icon.slimmer.svg" alt="" class="header-aether-sign">&ndash;&gt;-->
+                <!--<span class="owner-name">-->
+                    <!--{{ subject.FirstPostOwner }}-->
+                <!--</span>-->
+            <!--</div>-->
+            <!--{{ subject.FirstPostBody | truncate:400 }}-->
+
+        <!--</div>-->
+
     </div>
 </div>

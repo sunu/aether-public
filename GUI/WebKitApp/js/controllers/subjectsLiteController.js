@@ -1,4 +1,4 @@
-function SubjectsLiteController($scope, $rootScope, frameViewStateBroadcast, gateReaderServices) {
+function SubjectsLiteController($scope, $rootScope, frameViewStateBroadcast, gateReaderServices, $timeout) {
     $scope.$watch('requestedId', function(){
         if ($rootScope.requestedId !== undefined) {
             gateReaderServices.getParentPost(parentIdArrived, $rootScope.requestedId)
@@ -6,11 +6,26 @@ function SubjectsLiteController($scope, $rootScope, frameViewStateBroadcast, gat
     })
 
     function parentIdArrived(data) {
+
         $rootScope.thereIsASelectedSubject = true
         $rootScope.parentId = data.PostFingerprint
         $scope.selectedTopic = data
-        gateReaderServices.getAllSpecificDepthPosts(subjectsArrived, $rootScope.parentId, 1)
 
+        $scope.isCurrentlySubscribed = false
+        // Check if this topic is a topic that is currently subscribed
+        for (var i=0;i<$rootScope.userProfile.userDetails.selectedTopics.length;i++) {
+            (function(){
+                if ($rootScope.userProfile.userDetails.selectedTopics[i] ===
+                    $scope.selectedTopic.PostFingerprint) {
+                    $scope.isCurrentlySubscribed = true
+                }
+            })()
+        }
+
+
+        if ($rootScope.parentId) {
+            gateReaderServices.getAllSpecificDepthPosts(subjectsArrived, $rootScope.parentId, 1)
+        }
 
         function subjectsArrived(data) {
             // Remove the first element, because it is the
@@ -18,6 +33,27 @@ function SubjectsLiteController($scope, $rootScope, frameViewStateBroadcast, gat
             data.splice(0,1)
             //data = data.sort($rootScope.sortByScore)
             $scope.subjects = data
+            $timeout(function(){
+                document.getElementById('post-'+$rootScope.requestedId).scrollIntoViewIfNeeded()
+            },10)
+        }
+
+
+    }
+
+    $scope.toggleSubscriptionState = function() {
+        console.log('scope selectedtopic postfingerprint:', $scope.selectedTopic.PostFingerprint)
+        if($rootScope.userProfile.userDetails.selectedTopics
+            .indexOf($scope.selectedTopic.PostFingerprint) > -1 ) {
+            // If it exists, remove
+            var index = $rootScope.userProfile.userDetails.selectedTopics.indexOf($scope.selectedTopic.PostFingerprint)
+            $rootScope.userProfile.userDetails.selectedTopics.splice(index, 1)
+            $scope.isCurrentlySubscribed = false
+        }
+        else
+        {
+            $rootScope.userProfile.userDetails.selectedTopics.push($scope.selectedTopic.PostFingerprint)
+            $scope.isCurrentlySubscribed = true
         }
     }
 
@@ -36,4 +72,4 @@ function SubjectsLiteController($scope, $rootScope, frameViewStateBroadcast, gat
     // I also need to determine here if this is in 2nd or 3rd scope, or write a
     // different controller for lite version.
 }
-SubjectsLiteController.$inject = ['$scope', '$rootScope', 'frameViewStateBroadcast', 'gateReaderServices']
+SubjectsLiteController.$inject = ['$scope', '$rootScope', 'frameViewStateBroadcast', 'gateReaderServices', '$timeout']

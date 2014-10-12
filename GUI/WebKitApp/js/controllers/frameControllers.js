@@ -4,6 +4,26 @@
 function FirstFrameController($scope, $rootScope, frameViewStateBroadcast,
     gateReaderServices) {
 
+    $scope.$on('initialised', function() {
+        document.getElementById('cloak').style.display = 'none';
+    })
+
+    // Check if there are any topics and their counts available. This is the global app state check.
+    $rootScope.countsAvailable = false
+    gateReaderServices.getUppermostTopics(function(data) {
+        if (data.length) {
+            // if there are topics, but not their counts.
+            for (var i=0;i<data.length;i++) {
+                if (data[i].ReplyCount) {
+                    $rootScope.countsAvailable = true
+                    return
+                }
+            }
+
+        }
+        $rootScope.countsAvailable = false
+    })
+
 
     // Methods below are available to all scopes. They're inside the first frame
     // controller, because it seems I cannot place rootScope
@@ -17,6 +37,26 @@ function FirstFrameController($scope, $rootScope, frameViewStateBroadcast,
     $rootScope.alert = function(text) {
         alert(text)
     }
+
+
+
+    // Make markdown available globally
+    $rootScope.mdConverter = Markdown.getSanitizingConverter()
+
+    // The cache objects. These objects store the transient values for
+    // thread and post creation. All the pages that open a creation interface
+    // use this as the workspace, albeit after linking they can continue
+    // to use their own names.
+
+    $rootScope.postTextCache = ''
+    $rootScope.subjectHeaderCache = ''
+
+
+    // This entire thing below: I'm starting to get a distinct feeling that
+    // I am poorly recreating ui-router. There's gotta be a better way of
+    // doing this. Research if I can move to ui-router and take all that
+    // cruft off my plate.
+
     // These two methods are available globally: they allow basic frame change
     // methods to work. Frame change changes the partial views, and frame size
     // change changes the sizes of the second and third frames.
@@ -93,34 +133,93 @@ function FirstFrameController($scope, $rootScope, frameViewStateBroadcast,
         })
 
     // If any part of the userProfile doesn't exist on first load, create it here.
+    // I moved JSON creation to the backend.
 
-    if ($rootScope.userProfile.selectedTopics === undefined) {
-        $rootScope.userProfile.selectedTopics = []
+//    if ($rootScope.userProfile.userDetails.selectedTopics === undefined) {
+//        $rootScope.userProfile.userDetails.selectedTopics = []
+//    }
+//
+//    if ($rootScope.userProfile.userDetails === undefined) {
+//        $rootScope.userProfile.userDetails = {
+//            Username: '',
+//            userLanguages: ['English'],
+//            StartAtBoot: true,
+//            maxInboundCount: 3,
+//            maxOutboundCount: 10,
+//            cooldown: 5
+//        }
+//    }
+//
+//    if ($rootScope.userProfile.userDetails.unreadReplies === undefined) {
+//        $rootScope.userProfile.userDetails.unreadReplies = []
+//    }
+//
+//    if ($rootScope.userProfile.userDetails.readReplies === undefined) {
+//        $rootScope.userProfile.userDetails.readReplies = []
+//    }
+
+    // Set theme
+
+    if ($rootScope.userProfile.userDetails.theme === undefined)
+    {
+        $rootScope.userProfile.userDetails.theme = false
     }
 
-    if ($rootScope.userProfile.UserDetails === undefined) {
-        $rootScope.userProfile.UserDetails = {
-            Username: '',
-            UserLanguages: ['English'],
-            StartAtBoot: true,
-            maxInboundCount: 3,
-            maxOutboundCount: 10,
-            cooldown: 5
+    $rootScope.setTheme = function(value) { // 0: Light, 1: Dark
+        var darkSheet = document.getElementsByTagName('link')[2]
+        var lightSheet = document.getElementsByTagName('link')[1]
+        if (value === 1) {
+            // We went dark
+            darkSheet.disabled = false
+            lightSheet.disabled = true
+        }
+        else if (value === 0) {
+            // Let there be light
+            darkSheet.disabled = true
+            lightSheet.disabled = false
         }
     }
 
-    if ($rootScope.userProfile.UnreadReplies === undefined) {
-        $rootScope.userProfile.UnreadReplies = []
+    if ($rootScope.userProfile.userDetails.theme === false) {
+        // Light.
+        $rootScope.setTheme(0)
     }
-
-    if ($rootScope.userProfile.ReadReplies === undefined) {
-        $rootScope.userProfile.ReadReplies = []
+    else if($rootScope.userProfile.userDetails.theme === true) {
+        // Dark. change.
+        $rootScope.setTheme(1)
     }
 
     $rootScope.appIsPaused = false
 
     $scope.$watch('userProfile', function() {
-        $scope.userProfile.UserDetails.Username = $scope.userProfile.UserDetails.Username.trim()
+        // Some guards about what can get into the profile. This is the place to protect and sanitise input from user.
+        $scope.userProfile.userDetails.username = $scope.userProfile.userDetails.username.trim()
+        var maxInbound = parseInt($scope.userProfile.machineDetails.maxInboundCount, 10) // base 10
+        var maxOutbound = parseInt($scope.userProfile.machineDetails.maxOutboundCount, 10)
+        var cooldown = parseInt($scope.userProfile.machineDetails.cooldown, 10)
+        if (maxInbound < 1 || isNaN(maxInbound)) {
+            $scope.userProfile.machineDetails.maxInboundCount = 3
+        }
+        else
+        {
+            $scope.userProfile.machineDetails.maxInboundCount = maxInbound
+        }
+
+        if (maxOutbound < 1 || isNaN(maxOutbound)) {
+            $scope.userProfile.machineDetails.maxOutboundCount = 10
+        }
+        else
+        {
+            $scope.userProfile.machineDetails.maxOutboundCount = maxOutbound
+        }
+
+        if (cooldown < 1 || isNaN(cooldown)) {
+            $scope.userProfile.machineDetails.cooldown = 5
+        }
+        else
+        {
+            $scope.userProfile.machineDetails.cooldown = cooldown
+        }
         gateReaderServices.saveUserProfile(function() {}, $rootScope.userProfile)
         //console.log('autocommit fired, new profile: ',$rootScope.userProfile)
     }, true)
@@ -135,8 +234,9 @@ function FirstFrameController($scope, $rootScope, frameViewStateBroadcast,
         true : false
     }
 
-    $rootScope.scrollSecondFrameToTop = function() {
-        document.getElementById('scroll-target-second-frame').scrollIntoView()
+    $rootScope.reloadSecondFrameScrollPosition = function() {
+        var scrollLocation = $rootScope.secondFrameSelectedTemplate.lastScrollLocation
+            document.getElementById('second-frame').scrollTop = scrollLocation
     }
 
     $rootScope.scrollThirdFrameToTop = function() {
@@ -184,7 +284,7 @@ function FirstFrameController($scope, $rootScope, frameViewStateBroadcast,
     }
 
     $scope.threadsButtonClick = function() {
-        $rootScope.changeState('subjectsFeed', 'topicsFeedLite', undefined)
+        $rootScope.changeState('subjectsFeed', 'topicsFeedLite', $rootScope.parentId)
         $rootScope.thereIsASelectedSubject = false
 
         $rootScope.secondFrameCSSStyle = {}
@@ -270,61 +370,71 @@ function SecondFrameController($scope, $rootScope, frameViewStateBroadcast,
     // required for first frame buttons' awareness, but could be useful in other
     // places.
 
-    $scope.templates = [{
+    $rootScope.secondFrameTemplates = [{
         name: 'homeFeed',
         url: 'partials/homeFeed.html',
-        region: 'Home'
+        region: 'Home',
+        lastScrollLocation:0
     },{
         name:'onboarding',
         url: 'partials/onboarding.html',
-        region: 'NoRegion'
+        region: 'NoRegion',
+        lastScrollLocation:0
     },{
         name: 'postsFeed',
         url: 'partials/postsFeed.html',
-        region: 'Details'
+        region: 'Details',
+        lastScrollLocation:0 // This is always zero. I do not retain scroll location on this.
     },{
         name: 'subjectsFeed',
         url: 'partials/subjectsFeed.html',
-        region: 'Details'
+        region: 'Details',
+        lastScrollLocation:0
     },{
         name: 'savedItemsFeed',
         url: 'partials/savedItemsFeed.html',
-        region: 'SavedItems'
-    },{
-        name: 'userProfile',
-        url: 'partials/userProfile.html'
+        region: 'SavedItems',
+        lastScrollLocation:0
     },{
         name: 'createSubject',
         url: 'partials/createSubject.html',
-        region: 'Details'
+        region: 'Details',
+        lastScrollLocation:0
     },{
         name: 'findOrCreateTopic',
         url: 'partials/findOrCreateTopic.html',
-        region: 'Topics'
+        region: 'Topics',
+        lastScrollLocation:0
     },{
         name: 'settingsFeed',
         url: 'partials/settingsBase.html',
-        region: 'Settings'
+        region: 'Settings',
+        lastScrollLocation:0
     },{
         name: 'singlePost',
         url: 'partials/singlePost.html',
-        region: 'NoRegion'
+        region: 'NoRegion',
+        lastScrollLocation:0
     },{
         name: 'repliesFeed',
         url: 'partials/repliesFeed.html',
-        region: 'Replies'
+        region: 'Replies',
+        lastScrollLocation:0
     },{
         name: 'singleReply',
         url: 'partials/singlePost.html',
-        region: 'NoRegion'
+        region: 'NoRegion',
+        lastScrollLocation:0
     },{
         name: 'unregisteredUserFeed',
         url: 'partials/unregisteredUserItemsFeed.html',
-        region: 'NoRegion' // This is for now..
+        region: 'NoRegion', // This is for now..
+        lastScrollLocation:0
     },{
         name: 'unregisteredUserProfile',
         url: 'partials/unregisteredUserProfile.html',
-        region: 'Profile'
+        region: 'Profile',
+        lastScrollLocation:0
     }]
 
     gateReaderServices.getOnboardingComplete(onboardingCompleteArrived)
@@ -333,12 +443,12 @@ function SecondFrameController($scope, $rootScope, frameViewStateBroadcast,
         console.log('onboardingComplete status:', onboardingComplete)
         if (onboardingComplete === true) { //normal state = true
             // If not newborn
-            $scope.selectedTemplate = $scope.templates[0] // 0 is home
+            $rootScope.secondFrameSelectedTemplate = $rootScope.secondFrameTemplates[0] // 0 is home
             $rootScope.currentApplicationRegion = 'Home'
         }
         else
         {
-            $scope.selectedTemplate = $scope.templates[1] //1 is onboarding
+            $rootScope.secondFrameSelectedTemplate = $rootScope.secondFrameTemplates[1] //1 is onboarding
             $rootScope.currentApplicationRegion = 'NoRegion'
         }
     }
@@ -349,21 +459,25 @@ function SecondFrameController($scope, $rootScope, frameViewStateBroadcast,
     // no recollection of writing it. Oh god.
 
     $scope.$on('frameViewStateChanged', function() {
-        $rootScope.scrollSecondFrameToTop()
+        // Save the scroll state.
+        if ($rootScope.secondFrameSelectedTemplate.name != 'postsFeed') {
+            // Because it does not make sense to retain the scroll location from one view to another.
+            $rootScope.secondFrameSelectedTemplate.lastScrollLocation =
+            -document.getElementById('second-frame-contents').getBoundingClientRect().top
+        }
         var searchResult
-        for (var i = 0; i<$scope.templates.length; i++) {
-            if ($scope.templates[i].name === frameViewStateBroadcast.secondFrame) {
-                searchResult = $scope.templates[i]
+        for (var i = 0; i<$rootScope.secondFrameTemplates.length; i++) {
+            if ($rootScope.secondFrameTemplates[i].name === frameViewStateBroadcast.secondFrame) {
+                searchResult = $rootScope.secondFrameTemplates[i]
             }
         }
-
         // Change only if 2nd variable exists i.e. it isn't ""
         if (frameViewStateBroadcast.secondFrame !== "") {
-            $scope.selectedTemplate = searchResult
+            $rootScope.secondFrameSelectedTemplate = searchResult
             $rootScope.currentApplicationRegion = searchResult.region
 
         }
-
+        $rootScope.reloadSecondFrameScrollPosition()
     })
 }
 
@@ -394,7 +508,6 @@ function ThirdFrameController($scope, $rootScope, frameViewStateBroadcast) {
                 searchResult = $scope.templates[i]
             }
         }
-
         // Change only if 2nd variable exists i.e. it isn't ""
         if (frameViewStateBroadcast.thirdFrame !== "") {
             $scope.selectedTemplate = searchResult

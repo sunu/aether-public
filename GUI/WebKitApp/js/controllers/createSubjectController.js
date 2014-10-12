@@ -9,10 +9,34 @@ function CreateSubjectController($scope, $rootScope, $timeout, frameViewStateBro
     $scope.langInUserLangs = undefined // We don't know yet.
     $scope.writeInProgress = true
     $scope.postButtonDisabled = true
-    $scope.subjectHeaderText = ''
-    $scope.subjectBodyText = ''
+    $scope.subjectHeaderText = $rootScope.subjectHeaderCache
+    $scope.subjectBodyText = $rootScope.postTextCache
     $scope.possLangs = []
     $scope.possLangs.push('Auto')
+    $scope.target = angular.element(document.getElementsByClassName('scrolling-target'))[0]
+    $scope.postCompleted = false // This is useful, because I need to know this on destroy.
+
+    $timeout(function(){
+        var headerElm = angular.element(document.getElementsByClassName('subject-name-entry'))[0]
+        headerElm.focus()
+    },100)
+
+    $scope.$on('$destroy', function() {
+
+        if ($scope.postCompleted) {
+            $rootScope.postTextCache = '' // Remove the cache after successful post.
+            $rootScope.subjectHeaderCache = ''
+            $scope.subjectHeaderText = ''
+            $scope.subjectBodyText = ''
+        }
+        else
+        {
+            var elm = angular.element(document.getElementsByClassName('subject-body-entry'))[0]
+            var headerElm = angular.element(document.getElementsByClassName('subject-name-entry'))[0]
+            $rootScope.postTextCache = elm.innerHTML // Cache the child HTML nodes (html input contented.) for future.
+            $rootScope.subjectHeaderCache = headerElm.innerText
+        }
+    })
 
 
     $scope.cancel = function() {
@@ -29,10 +53,11 @@ function CreateSubjectController($scope, $rootScope, $timeout, frameViewStateBro
     $scope.postSubject = function() {
 
         // check the username.
-        if ($rootScope.userProfile.UserDetails.Username === '') {
-            $rootScope.userProfile.UserDetails.Username = 'no name given'
+        if ($rootScope.userProfile.userDetails.username === '') {
+            $rootScope.userProfile.userDetails.username = 'no name given'
         }
         $scope.writeInProgress = false
+        // These two keep the newlines.
         var subjectHeader = angular.element(document.getElementsByClassName('subject-name-entry'))[0].innerText.trim()
         var subjectBody = angular.element(document.getElementsByClassName('subject-body-entry'))[0].innerText.trim()
         var found = false
@@ -51,9 +76,9 @@ function CreateSubjectController($scope, $rootScope, $timeout, frameViewStateBro
             if ($scope.language != 'Tg_unknown_language') {
                 $scope.possibleLanguages.push({name:$scope.language, langGroup:'Detected'})
             }
-            for (var i=0; i<$rootScope.userProfile.UserDetails.UserLanguages.length; i++) {
+            for (var i=0; i<$rootScope.userProfile.userDetails.userLanguages.length; i++) {
                 var langItem = {
-                    name: $rootScope.userProfile.UserDetails.UserLanguages[i],
+                    name: $rootScope.userProfile.userDetails.userLanguages[i],
                     langGroup: 'Your Language(s)'
                 }
                 $scope.possibleLanguages.push(langItem)
@@ -61,8 +86,8 @@ function CreateSubjectController($scope, $rootScope, $timeout, frameViewStateBro
             $scope.selectedLanguage = $scope.possibleLanguages[0]
             // Do checking on the model if I need to show the dropdown.
             found = false
-            for (var i=0; i<$rootScope.userProfile.UserDetails.UserLanguages.length; i++) {
-                if ($scope.language === $rootScope.userProfile.UserDetails.UserLanguages[i]) {
+            for (var i=0; i<$rootScope.userProfile.userDetails.userLanguages.length; i++) {
+                if ($scope.language === $rootScope.userProfile.userDetails.userLanguages[i]) {
                     found = true
                     break
                 }
@@ -75,23 +100,34 @@ function CreateSubjectController($scope, $rootScope, $timeout, frameViewStateBro
 
 
         if (!found && $scope.langManuallySelected) {
-            if ($rootScope.userProfile.UserDetails.UserLanguages.indexOf($scope.language) === -1) {
-                $rootScope.userProfile.UserDetails.UserLanguages.push($scope.language)
+            if ($rootScope.userProfile.userDetails.userLanguages.indexOf($scope.language) === -1) {
+                $rootScope.userProfile.userDetails.userLanguages.push($scope.language)
             }
         }
 
         gateReaderServices.createPost(subjectPostCreated,subjectHeader, '', $scope.requestedId,
-            $rootScope.userProfile.UserDetails.Username, $scope.language)
+            $rootScope.userProfile.userDetails.username, $scope.language)
 
         function subjectPostCreated(createdSubjectPostFingerprint) {
             console.log('this is the id of the created subject', createdSubjectPostFingerprint)
             gateReaderServices.createPost(bodyPostCreated, '', subjectBody,
-                createdSubjectPostFingerprint, $rootScope.userProfile.UserDetails.Username,
+                createdSubjectPostFingerprint, $rootScope.userProfile.userDetails.username,
                 $scope.language)
 
             function bodyPostCreated(createdPostFingerprint) {
                 console.log('this is the id of the created post', createdPostFingerprint)
+                $scope.postCompleted = true
                 $rootScope.changeState('subjectsFeed', '', '')
+
+                $timeout(function(){
+                    console.log('lock into the newly created subject triggered')
+                    var singleColumnTarget = document.querySelector('.single-column #post-'+createdSubjectPostFingerprint)
+                    var multiColumnTarget = document.querySelector('.multi-column #post-'+createdSubjectPostFingerprint)
+                    singleColumnTarget.classList.add('post-color-highlight')
+                    multiColumnTarget.classList.add('post-color-highlight')
+                    singleColumnTarget.scrollIntoViewIfNeeded()
+                    multiColumnTarget.scrollIntoViewIfNeeded()
+                }, 10)
             }
         }
     }
@@ -140,6 +176,16 @@ function CreateSubjectController($scope, $rootScope, $timeout, frameViewStateBro
         $scope.selectedLanguage = $scope.possLangs[0]
     })
 
+    $scope.$watch('subjectBodyText', function() {
+        window.requestAnimationFrame(function(){
+            if ($scope.target &&
+                -document.getElementById('create-subject-feed').getBoundingClientRect().top + document.height + 100 >
+                    document.getElementById('create-subject-feed').offsetHeight) {
+                $scope.target.scrollIntoViewIfNeeded()
+            }
+        })
+    })
+
     // Below are watches that fire only on certain intervals.
 
     $scope.$watch(function() { return Math.floor($scope.subjectBodyText.length / 200) }, function() {
@@ -151,15 +197,18 @@ function CreateSubjectController($scope, $rootScope, $timeout, frameViewStateBro
     $scope.$watch(function() { return Math.floor($scope.subjectBodyText.length / 20) }, function() {
         // This will fire every 20 letters written, which is about when an update
         // is needed to guessed lang.
-
+        $scope.possLangs = ['Auto']
         var possLang = detectLanguage(
                 angular.element(document.getElementsByClassName('subject-body-entry')).text())
         if (possLang != 'Tg_unknown_language') {
             $scope.possLangs.push(possLang)
         }
-        for (var i=0; i<$rootScope.userProfile.UserDetails.UserLanguages.length; i++) {
-            if ($rootScope.userProfile.UserDetails.UserLanguages[i] != $scope.possLangs[1]) {
-                $scope.possLangs.push($rootScope.userProfile.UserDetails.UserLanguages[i])
+        // For each of the user's languages,
+        for (var i=0; i<$rootScope.userProfile.userDetails.userLanguages.length; i++) {
+            // If the guessed language (possLangs[1], bc [0] is 'Auto') is not it,
+            if ($rootScope.userProfile.userDetails.userLanguages[i] != $scope.possLangs[1]) {
+                // Add it to the user's languages.
+                $scope.possLangs.push($rootScope.userProfile.userDetails.userLanguages[i])
             }
         }
         $scope.selectedLanguage = $scope.possLangs[0]

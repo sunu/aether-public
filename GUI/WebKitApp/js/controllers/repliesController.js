@@ -4,19 +4,19 @@ function RepliesController($scope, $rootScope, frameViewStateBroadcast, gateRead
     function dataArrived(data) {
         for (var i=0;i<data.length;i++) {
             (function(i){
-                if ($rootScope.userProfile.UnreadReplies.indexOf(data[i].PostFingerprint) === -1
-                    && $rootScope.userProfile.ReadReplies.indexOf(data[i].PostFingerprint) === -1) {
+                if ($rootScope.userProfile.userDetails.unreadReplies.indexOf(data[i].PostFingerprint) === -1
+                    && $rootScope.userProfile.userDetails.readReplies.indexOf(data[i].PostFingerprint) === -1) {
                     // If the coming reply does not exist both in unread and read, it's new.
                     // Add the fingerprint to the unreads.
-                    $rootScope.userProfile.UnreadReplies.push(data[i].PostFingerprint)
+                    $rootScope.userProfile.userDetails.unreadReplies.push(data[i].PostFingerprint)
                     // Flag as Unread to the frontend.
                     data[i].Unread = true
                 }
-                else if ($rootScope.userProfile.ReadReplies.indexOf(data[i].PostFingerprint) > -1) {
+                else if ($rootScope.userProfile.userDetails.readReplies.indexOf(data[i].PostFingerprint) > -1) {
                     // If it exists in the read
                     data[i].Unread = false
                 }
-                else if ($rootScope.userProfile.UnreadReplies.indexOf(data[i].PostFingerprint) > -1) {
+                else if ($rootScope.userProfile.userDetails.unreadReplies.indexOf(data[i].PostFingerprint) > -1) {
                     // If it exists in the unread
                     data[i].Unread = true
                 }
@@ -30,13 +30,13 @@ function RepliesController($scope, $rootScope, frameViewStateBroadcast, gateRead
     $scope.replies = repliesArray
 
     $scope.clickToReply = function(postFingerprint) {
-        if ($rootScope.userProfile.UnreadReplies.indexOf(postFingerprint) > -1) {
+        if ($rootScope.userProfile.userDetails.unreadReplies.indexOf(postFingerprint) > -1) {
             // If it exists in the unread
-            var index = $rootScope.userProfile.UnreadReplies.indexOf(postFingerprint)
+            var index = $rootScope.userProfile.userDetails.unreadReplies.indexOf(postFingerprint)
             // remove from the unreads,
-            $rootScope.userProfile.UnreadReplies.splice(index, 1)
+            $rootScope.userProfile.userDetails.unreadReplies.splice(index, 1)
             // and add to the reads.
-            $rootScope.userProfile.ReadReplies.push(postFingerprint)
+            $rootScope.userProfile.userDetails.readReplies.push(postFingerprint)
         }
         $rootScope.changeState('singleReply', '', postFingerprint)
     }
@@ -46,8 +46,8 @@ function RepliesController($scope, $rootScope, frameViewStateBroadcast, gateRead
         function answerArrived(answer) {
             if (answer === true) {
                 $rootScope.changeState('homeFeed', '', '')
-                $rootScope.userProfile.UnreadReplies = []
-                $rootScope.userProfile.ReadReplies = []
+                $rootScope.userProfile.userDetails.unreadReplies = []
+                $rootScope.userProfile.userDetails.readReplies = []
                 $rootScope.totalReplyCount = 0
             }
         }

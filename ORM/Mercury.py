@@ -9,21 +9,18 @@
     Everything in this API should return dicts. No SQLAlchemy objects.
 """
 from __future__ import print_function
+import globals
 import ujson
 from time import sleep
 from datetime import timedelta
 
 from twisted.internet import threads
-from termcolor import cprint
-
 from ORM.models import *
 from Demeter import committer
-import globals
 
-if not globals.debugEnabled:
+
+if not globals.userProfile.get('debugDetails', 'debugLogging'):
     def print(*a, **kwargs):
-        pass
-    def cprint(text, color=None, on_color=None, attrs=None, **kwargs):
         pass
 
 """
@@ -35,11 +32,11 @@ def handleConnectingNode(nodeId, ip, port):
     def threadFunction():
         s = Session()
         if not s.query(Node).filter(Node.NodeId == nodeId).count(): # If doesn't exist
-            cprint('CONNECTED TO: A NEW NODE. Adding new record.', 'cyan', 'on_blue')
+            print('CONNECTED TO: A NEW NODE. Adding new record.')
             node = Node(NodeId=nodeId, LastConnectedIP=ip, LastConnectedDate=datetime.utcnow(),
                     LastConnectedPort=port)
         else: # If node already exists in database
-            cprint('CONNECTED TO: A KNOWN NODE. Updating record.', 'cyan', 'on_blue')
+            print('CONNECTED TO: A KNOWN NODE. Updating record.')
             node = s.query(Node).filter(Node.NodeId == nodeId).one()
             node.LastConnectedDate = datetime.utcnow()
             node.LastConnectedIP = ip
@@ -58,7 +55,6 @@ def handleConnectingNode(nodeId, ip, port):
 
 def insertHeadersAndVotes(reply, connectedNode):
     #Reply: PositiveHeaders, NeutralHeaders, NegativeHeaders, TopicHeaders
-    #cprint('RECEIVED: HEADERS. \n%s' %(reply), 'cyan', 'on_blue')
 
     def threadFunction():
         # Just create everything as if new and put it to the queue. Queue, at commit time, will remove the already
@@ -126,7 +122,6 @@ def listNeededPosts(reply):
     return threads.deferToThread(threadFunction)
 
 def insertPost(reply):
-    #cprint('RECEIVED: A POST. \n', 'cyan', 'on_blue')
     def threadFunction():
         # This feeds the commit queue posts with UNIX timestamps as dates.
         # Convert it to datetime objects.
@@ -307,12 +302,13 @@ def getPost(fingerprint):
         del postAsDict['Neutral']
         del postAsDict['Saved']
         del postAsDict['IsReply']
+        del postAsDict['ReplyDismissed']
         del postAsDict['LocallyCreated']
         del postAsDict['Dirty']
         del postAsDict['RankScore']
 
 
-        cprint('FROM REMOTE: POST REQUEST: for post %s' %(fingerprint), 'white', 'on_yellow', attrs=['bold'])
+        print('FROM REMOTE: POST REQUEST: for post %s' %(fingerprint))
         return postAsDict
 
     return threads.deferToThread(threadFunction)

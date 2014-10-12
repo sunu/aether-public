@@ -40,7 +40,7 @@ function FindOrCreateTopicController($scope, $rootScope, $timeout, frameViewStat
                 // If counter is zero, not locally created, and not a selected topic.
                 if (data[i].ReplyCount === 1 &&
                     data[i].LocallyCreated === false &&
-                    $rootScope.userProfile.selectedTopics.indexOf(data[i].PostFingerprint) === -1) {
+                    $rootScope.userProfile.userDetails.selectedTopics.indexOf(data[i].PostFingerprint) === -1) {
                     continue
                 }
                 else {
@@ -97,7 +97,7 @@ function FindOrCreateTopicController($scope, $rootScope, $timeout, frameViewStat
     refreshTopics()
 
     $scope.$watch('countsAvailable', function() {
-        if ($scope.countsAvailable)
+        if ($rootScope.countsAvailable)
         {
             document.getElementById('find-or-create-topic-feed').style.height = 'auto'
         }
@@ -105,21 +105,21 @@ function FindOrCreateTopicController($scope, $rootScope, $timeout, frameViewStat
 
 
     $scope.toggleAdditionToSelectedTopics = function(fingerprint) {
-        if($rootScope.userProfile.selectedTopics
+        if($rootScope.userProfile.userDetails.selectedTopics
             .indexOf(fingerprint) > -1 ) {
             // If it exists, remove
-            var index = $rootScope.userProfile.selectedTopics.indexOf(fingerprint)
-            $rootScope.userProfile.selectedTopics.splice(index, 1)
+            var index = $rootScope.userProfile.userDetails.selectedTopics.indexOf(fingerprint)
+            $rootScope.userProfile.userDetails.selectedTopics.splice(index, 1)
         }
         else
         {
-            $rootScope.userProfile.selectedTopics.push(fingerprint)
+            $rootScope.userProfile.userDetails.selectedTopics.push(fingerprint)
         }
         refreshService() // This is a broadcast to initiate refresh.
     }
 
     $scope.isCurrentlySelected = function(fingerprint) {
-        return $rootScope.userProfile.selectedTopics
+        return $rootScope.userProfile.userDetails.selectedTopics
         .indexOf(fingerprint) > -1 ? true : false
     }
 
@@ -168,19 +168,29 @@ function FindOrCreateTopicController($scope, $rootScope, $timeout, frameViewStat
         var topicFound = false
         for (var i = 0; i<$scope.allAvailableTopics.length; i++) {
             if (inputText === $scope.allAvailableTopics[i].Subject) {
-                $rootScope.userProfile.selectedTopics.push(
+                $rootScope.userProfile.userDetails.selectedTopics.push(
                     $scope.allAvailableTopics[i].PostFingerprint)
                 topicFound = true
                 $scope.postText = ''
-                $rootScope.scrollSecondFrameToTop()
+                $rootScope.reloadSecondFrameScrollPosition()
                 break
             }
         }
         if (topicFound === false) {
             gateReaderServices.createTopic(answerArrived, inputText)
-            function answerArrived(data) {
-                $rootScope.userProfile.selectedTopics.push(data)
+            function answerArrived(topicPostFingerprint) {
+                $rootScope.userProfile.userDetails.selectedTopics.push(topicPostFingerprint)
                 $scope.postText = ''
+                $rootScope.secondFrameCSSStyle = {}
+                $rootScope.thirdFrameCSSStyle = {
+                    'display':'block'
+                }
+                $rootScope.changeState('subjectsFeed', 'topicsFeedLite', topicPostFingerprint)
+                refreshService()
+                $timeout(function(){
+                    var targetElement = document.getElementById('post-'+topicPostFingerprint)
+                    targetElement.scrollIntoViewIfNeeded()
+                }, 10)
             }
         }
         angular.element(document.getElementsByClassName('topic-name-entry')).text('')

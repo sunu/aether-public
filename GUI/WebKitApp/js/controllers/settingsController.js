@@ -1,6 +1,15 @@
-function SettingsController($scope, $rootScope, frameViewStateBroadcast, gateReaderServices) {
+function SettingsController($scope, $rootScope, frameViewStateBroadcast, gateReaderServices, $timeout) {
 
     // This two are on rootScope because the third frame needs to access this too.
+
+    // Refresh the user profile object in memory before doing anything else.
+    gateReaderServices.getUserProfile(
+        function(userProfile) {
+            console.log('getUserProfile from settings is called.')
+            $rootScope.userProfile = userProfile
+        })
+
+
     $rootScope.settingsSubmenuTemplates = [
     {
         Name: 'General',
@@ -12,8 +21,11 @@ function SettingsController($scope, $rootScope, frameViewStateBroadcast, gateRea
         Name: 'Tutorial',
         Url: 'partials/settings/tutorial.html'
     }, {
+        Name: 'Markdown',
+        Url: 'partials/settings/markdown.html'
+    }, {
         Name: 'About',
-        Url: 'partials/settings/About.html'
+        Url: 'partials/settings/about.html'
     }, {
         Name: 'Licenses',
         Url: 'partials/settings/licenses.html'
@@ -30,32 +42,84 @@ function SettingsController($scope, $rootScope, frameViewStateBroadcast, gateRea
         }
     }
 
-    for (var i=0;i<$rootScope.userProfile.UserDetails.UserLanguages.length;i++) {
-        var language = $rootScope.userProfile.UserDetails.UserLanguages[i]
+    for (var i=0;i<$rootScope.userProfile.userDetails.userLanguages.length;i++) {
+        var language = $rootScope.userProfile.userDetails.userLanguages[i]
         $scope[language+'Selected'] = true
     }
+    $scope.$watch('settingsSelectedTemplate', function() {
+         if ($rootScope.settingsSelectedTemplate.Name === 'Markdown') {
+             $timeout(function(){
+                var markdownSource = document.getElementById('raw-container')
+                $scope.mdResult = $rootScope.mdConverter.makeHtml(markdownSource.innerText)
+             }, 10)
+         }
+    })
 
-    // Start at boot radio button.
+    //test inject
+    //scope = $rootScope
 
-    if ($rootScope.userProfile.UserDetails.StartAtBoot) {
+    // Start at boot radio options.
+
+    if ($rootScope.userProfile.machineDetails.startAtBoot) {
         $scope.startAtBootRadioState = [
-        {'checked':'checked', 'value':1, 'name':'YES'},
-        {'checked':'', 'value':0, 'name':'NO'} ]
+        {'checked':true, 'value':1, 'name':'YES'},
+        {'checked':false, 'value':0, 'name':'NO'} ]
         // Setting the current state retrieved from JSON.
     }
     else {
         $scope.startAtBootRadioState = [
-        {'checked':'', 'value':1, 'name':'YES'},
-        {'checked':'checked', 'value':0, 'name':'NO'} ]
+        {'checked':false, 'value':1, 'name':'YES'},
+        {'checked':true, 'value':0, 'name':'NO'} ]
     }
 
     $scope.setStartAndBootStatus = function(value) {
-        $rootScope.userProfile.UserDetails.StartAtBoot = !!value
+        $rootScope.userProfile.machineDetails.startAtBoot = !!value
     }
+
+    // Check for updates radio options.
+
+    if ($rootScope.userProfile.machineDetails.checkForUpdates) {
+        $scope.checkForUpdatesRadioState = [
+        {'checked':true, 'value':1, 'name':'YES'},
+        {'checked':false, 'value':0, 'name':'NO'} ]
+        // Setting the current state retrieved from JSON.
+    }
+    else {
+        $scope.checkForUpdatesRadioState = [
+        {'checked':false, 'value':1, 'name':'YES'},
+        {'checked':true, 'value':0, 'name':'NO'} ]
+    }
+
+    $scope.setcheckForUpdatesRadioStatus = function(value) {
+        $rootScope.userProfile.machineDetails.checkForUpdates = !!value
+    }
+
+    // Theme radio options.
+    if ($rootScope.userProfile.userDetails.theme) { // 0 (False): Light, 1 (True): Dark
+        $scope.themeRadioState = [
+        {'checked':false, 'value':0, 'name':'Light'},
+        {'checked':true, 'value':1, 'name':'Dark'} ]
+        // Setting the current state retrieved from JSON.
+    }
+    else {
+        $scope.themeRadioState = [
+        {'checked':true, 'value':0, 'name':'Light'},
+        {'checked':false, 'value':1, 'name':'Dark'} ]
+    }
+
+    $scope.setThemeRadioStatus = function(value) {
+        $rootScope.setTheme(value)
+
+
+        $rootScope.userProfile.userDetails.theme = !!value
+    }
+
+
+
 
     // Logs radio button.
 
-//    if ($rootScope.userProfile.UserDetails.Logging) {
+//    if ($rootScope.userProfile.userDetails.Logging) {
 //        $scope.loggingRadioState = [
 //        {'checked':'checked', 'value':1, 'name':'YES'},
 //        {'checked':'', 'value':0, 'name':'NO'} ]
@@ -68,7 +132,7 @@ function SettingsController($scope, $rootScope, frameViewStateBroadcast, gateRea
 //    }
 //
 //    $scope.setLoggingStatus = function(value) {
-//        $rootScope.userProfile.UserDetails.Logging = !!value
+//        $rootScope.userProfile.userDetails.Logging = !!value
 //    }
 
 
@@ -76,18 +140,18 @@ function SettingsController($scope, $rootScope, frameViewStateBroadcast, gateRea
         $scope[language+'Selected']
         console.log($scope[language+'Selected'])
         if ($scope[language+'Selected']) {
-            if ($rootScope.userProfile.UserDetails.UserLanguages.length > 1) {
+            if ($rootScope.userProfile.userDetails.userLanguages.length > 1) {
                 $scope[language+'Selected'] = false
-                var index = $rootScope.userProfile.UserDetails.UserLanguages.indexOf(language)
+                var index = $rootScope.userProfile.userDetails.userLanguages.indexOf(language)
                 if (index > -1) {
-                    $rootScope.userProfile.UserDetails.UserLanguages.splice(index, 1);
+                    $rootScope.userProfile.userDetails.userLanguages.splice(index, 1);
                 }
             }
         }
         else
         {
             $scope[language+'Selected'] = true
-            $rootScope.userProfile.UserDetails.UserLanguages.push(language)
+            $rootScope.userProfile.userDetails.userLanguages.push(language)
         }
     }
     $scope.okButtonDisabled = false
@@ -109,12 +173,11 @@ function SettingsController($scope, $rootScope, frameViewStateBroadcast, gateRea
     // Advanced menu
 
     $scope.resetAdvanced = function() {
-        $rootScope.userProfile.UserDetails.maxOutboundCount = 10
-        $rootScope.userProfile.UserDetails.maxInboundCount = 3
-        $rootScope.userProfile.UserDetails.cooldown = 5
+        $rootScope.userProfile.machineDetails.maxOutboundCount = 10
+        $rootScope.userProfile.machineDetails.maxInboundCount = 3
+        $rootScope.userProfile.machineDetails.cooldown = 5
 
     }
 
-
 }
-SettingsController.$inject = ['$scope', '$rootScope', 'frameViewStateBroadcast', 'gateReaderServices']
+SettingsController.$inject = ['$scope', '$rootScope', 'frameViewStateBroadcast', 'gateReaderServices', '$timeout']

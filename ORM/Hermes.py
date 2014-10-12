@@ -3,21 +3,27 @@ This is the deepest API level which interfaces with SQLAlchemy directly. It's Ca
 This is a synchronous API that only serves the frontend. Network events are handled in Mercury.
 
 Remember, this API runs in a different process. It does not have access to GlobalCommitter instance!
-It can only fire an AMP command to let the parent process know.
+It can only fire an AMP command to let the child process know.
 
 """
-
+from __future__ import print_function
+import globals
+from globals import PROFILE_DIR
 import time, random, ujson
 from datetime import date, timedelta
 from sqlalchemy import func, or_
+from sqlalchemy.orm import exc
 from twisted.internet import threads
 
-from globals import basedir, refreshBackendValuesGatheredFromJson, profiledir
-import globals
 from ORM.models import *
+from InputOutput import interprocessAPI
 from twisted.python import reflect
 
 import sys
+
+if not globals.userProfile.get('debugDetails', 'debugLogging'):
+    def print(*a, **kwargs):
+        pass
 
 def timeit(method):
 
@@ -26,8 +32,8 @@ def timeit(method):
         result = method(*args, **kw)
         te = time.time() *1000
 
-        print '%r (%r, %r) %2.2f ms' % \
-              (method.__name__, args, kw, te-ts)
+        print('%r (%r, %r) %2.2f ms' % \
+              (method.__name__, args, kw, te-ts))
         return result
 
     return timed
@@ -49,7 +55,10 @@ class Hermes(object):
             results is a perfectly okay answer, it is not an exception. ... Well, shit, it turns out
         """
         session = Session()
-        post = session.query(Post).filter(Post.PostFingerprint == fingerprint).all()
+        try:
+            post = session.query(Post).filter(Post.PostFingerprint == fingerprint).all()
+        except exc.NoResultFound:
+            post = [] # Empty array, same type as above (all() returns an array)
         session.close()
         return post
 
@@ -203,12 +212,13 @@ class Hermes(object):
     def getHomeScreen(self, numberOfTopics, numberOfSubjects):
         # This returns the home screen. The number of topics shown and number of subjects inside each topic.
         result = []
-        topiks = globals.selectedTopics
         session = Session()
         topics = session.query(Post).filter(Post.ParentPostFingerprint == None)\
             .order_by(Post.ReplyCount.desc())\
-            .filter(Post.PostFingerprint.in_(globals.selectedTopics))\
+            .filter(Post.PostFingerprint.in_(globals.userProfile.get('userDetails', 'selectedTopics')))\
             .limit(numberOfTopics).all()
+
+        # Load popular subjects into memory
 
         popularSubjects = session.query(Post)\
             .filter(or_(Post.OwnerUsername != None,
@@ -230,7 +240,33 @@ class Hermes(object):
             'TopicName': 'Most Popular',
             'Subjects': popularSubjectsAsJsons
         }
+
+
+        # Load recent subjects into memory
+
+        recentSubjects = session.query(Post)\
+            .filter(or_(Post.OwnerUsername != None,
+                        Post.OwnerFingerprint != None),
+                    Post.Subject != None,
+                    Post.Body == '')\
+            .order_by(Post.CreationDate.desc()).limit(numberOfSubjects).all()
+
+        recentSubjectsAsJsons = []
+
+        for subject in recentSubjects:
+            subjectAsJson = ujson.dumps(subject.asDict(), ensure_ascii=False)
+            recentSubjectsAsJsons.append(subjectAsJson)
+
+        recentSubjectsDict = {
+            'TopicName': 'Most Recent',
+            'Subjects': recentSubjectsAsJsons
+        }
+
+        result.append(recentSubjectsDict)
         result.append(popularSubjectsDict)
+
+        # Normal processing below.
+
         for topic in topics:
             subjects = session.query(Post).filter(Post.ParentPostFingerprint == topic.PostFingerprint)\
                 .order_by(Post.RankScore.desc())\
@@ -310,29 +346,34 @@ class Hermes(object):
         """
             User in question is returned.
             Mind that this is only available for fingerprinted, i.e. registered users.
+            This feature is not yet available.
         """
-        session = Session()
-        user = session.query(User).filter(User.Fingerprint == fingerprint).all()[0]
-        session.close()
-        return user
+        # session = Session()
+        # user = session.query(User).filter(User.Fingerprint == fingerprint).all()[0]
+        # session.close()
+        # return user
+        return None
 
-    def getUnregisteredUserPosts(self, name):
+    def getUnregisteredUserPosts(self, name, offset):
         """
             This returns posts created by the unregistered user requested.
         """
         session = Session()
-        posts = session.query(Post).filter(Post.OwnerUsername == name).order_by(Post.CreationDate.desc()).all()
+        posts = session.query(Post).filter(Post.OwnerUsername == name)\
+            .order_by(Post.CreationDate.desc())\
+            .limit(offset)\
+            .all()
         session.close()
         return posts
 
 
     def readUserProfile(self):
         try:
-            f = open(profiledir+'UserProfile/UserProfile.json', 'rb')
+            f = open(PROFILE_DIR+'UserProfile/UserProfile.json', 'rb')
         except:
-            f = open(profiledir+'UserProfile/UserProfile.json', 'wb')
+            f = open(PROFILE_DIR+'UserProfile/UserProfile.json', 'wb')
             f.close()
-            f = open(profiledir+'UserProfile/UserProfile.json', 'rb')
+            f = open(PROFILE_DIR+'UserProfile/UserProfile.json', 'rb')
         jsonAsText = f.read()
         f.close()
         return jsonAsText
@@ -380,7 +421,10 @@ class Hermes(object):
 
     def __resolveAncestry(self, fingerprint):
         session = Session()
-        post = session.query(Post).filter(Post.PostFingerprint == fingerprint).one()
+        try:
+            post = session.query(Post).filter(Post.PostFingerprint == fingerprint).one()
+        except exc.NoResultFound:
+            return None # Not found. We have a missing link in the chain. That's normal.
         if post.OwnerUsername == '' and post.OwnerFingerprint == '':
             # If topic
             session.close()
@@ -396,10 +440,12 @@ class Hermes(object):
 
     def getParentSubjectOfGivenPost(self, fingerprint):
         subjectFingerprint = self.__resolveAncestry(fingerprint)
-        if subjectFingerprint is not False:
+        if subjectFingerprint is None:
+            return []
+        if subjectFingerprint is not False: # False = it's a topic, None = Not found.
             session = Session()
             parentSubject = session.query(Post).filter(Post.PostFingerprint == subjectFingerprint).all()
-            session.close
+            session.close()
             return parentSubject
 
 
@@ -413,11 +459,12 @@ class Hermes(object):
         session.add(topic)
         session.add(topicHeader)
         session.commit()
-        print "This topic has been added to the database"
+        print("This topic has been added to the database")
         fingerprint = topic.PostFingerprint
         session.close()
         print('calling commit on protinstance')
-        self.protInstance.commit()
+        # self.protInstance.commit()
+        self.protInstance.callRemote(interprocessAPI.commit, PostFingerprint=topic.PostFingerprint)
         return fingerprint
 
     def createPost(self, postSubject, postText, parentFingerprint, ownerUsername, postLanguage):
@@ -438,9 +485,10 @@ class Hermes(object):
         session.add(postHeader)
         session.add(vote)
         session.commit()
-        print "The post has been added to the database."
+        print("The post has been added to the database.")
         if post.Subject == '':
-            self.protInstance.commit(post.PostFingerprint) # This tells the dude I have committed a new post.
+            # self.protInstance.commit(post.PostFingerprint) # This tells the dude I have committed a new post.
+            self.protInstance.callRemote(interprocessAPI.commit, PostFingerprint=post.PostFingerprint)
             # Only commit if it is a post. Since there is no way to create a subject without a post, this should
             # prevent double signals.
         fingerprint = post.PostFingerprint
@@ -448,25 +496,24 @@ class Hermes(object):
 
         return fingerprint
 
-    def createSignedPost(self, postSubject, postText, parentFingerprint, ownerFingerprint):
-        session = Session()
-        post = Post(Subject=postSubject, Body=postText, OwnerFingerprint=ownerFingerprint,
-                    ownerUsername = getUser(ownerFingerprint).Username,
-                    ParentPostFingerprint=parentFingerprint)
-        session.add(post)
-        session.commit()
-        print "The signed post has been added to the database."
-        fingerprint = post.PostFingerprint
-        session.close()
-        return fingerprint
+    # def createSignedPost(self, postSubject, postText, parentFingerprint, ownerFingerprint):
+    #     session = Session()
+    #     post = Post(Subject=postSubject, Body=postText, OwnerFingerprint=ownerFingerprint,
+    #                 ownerUsername = getUser(ownerFingerprint).Username,
+    #                 ParentPostFingerprint=parentFingerprint)
+    #     session.add(post)
+    #     session.commit()
+    #     print("The signed post has been added to the database.")
+    #     fingerprint = post.PostFingerprint
+    #     session.close()
+    #     return fingerprint
 
     def writeUserProfile(self, userProfileInJSON):
         # This is the autocommitter.
         print('Autocommit Fired. Writing new user profile.')
-        f = open(profiledir+'UserProfile/UserProfile.json', 'wb')
-        f.write(userProfileInJSON.encode('utf8'))
-        f.close()
-        refreshBackendValuesGatheredFromJson(userProfileInJSON)
+        with open(PROFILE_DIR+'UserProfile/UserProfile.json', 'wb') as f:
+            f.write(userProfileInJSON.encode('utf8'))
+        globals.userProfile.loadFromFilesystem()
         return True
 
     def votePost(self, fingerprint, voteDirection):
@@ -587,6 +634,7 @@ class Hermes(object):
         replies = session.query(Post).filter(Post.IsReply == True).all()
         for r in replies:
             r.IsReply = False
+            r.ReplyDismissed = True
             session.add(r)
 
         session.commit()
@@ -605,4 +653,5 @@ class Hermes(object):
         return True
 
     def sendConnectWithIPSignal(self, ip, port):
-        self.protInstance.connectWithIP(ip, port)
+        # self.protInstance.connectWithIP(ip, port)
+        self.protInstance.callRemote(interprocessAPI.connectWithIP, IP=ip, Port=port)

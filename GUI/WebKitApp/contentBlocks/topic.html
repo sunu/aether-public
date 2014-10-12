@@ -4,7 +4,8 @@
     "
     ng-class="
     {'selected': isSelected(topic.PostFingerprint) };
-    ">
+    "
+    id="post-{{ topic.PostFingerprint }}">
     <span class="topic-item-name">{{ topic.Subject}}</span>
     <!-- <span class="new-item-count">{{ topic.newitemcount }}</span> -->
 </div>

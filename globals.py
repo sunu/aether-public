@@ -3,7 +3,6 @@
 # But imports to all other places work fine.
 from __future__ import print_function
 import sys
-import os.path
 from os import mkdir
 import cPickle as pickle
 import hashlib, random
@@ -13,14 +12,10 @@ from shutil import copy
 from twisted.internet.ssl import ContextFactory, ClientContextFactory
 from OpenSSL import SSL, crypto
 import os
+import stat
+import socket
 
-debugEnabled = True #FIXME
 
-if not debugEnabled:
-    def print(*a, **kwargs):
-        pass
-    def cprint(text, color=None, on_color=None, attrs=None, **kwargs):
-        pass
 
 # Current Running Platform: A lot of things depend on this.. Anything about the filesystem, adding to boot etc.
 
@@ -36,234 +31,315 @@ else:
 
 ##print('Aether is running on %s' %PLATFORM)
 
-# Set this to true if the app received the open signal at boot, so I can hide the splash and the UI.as
+# These define application status, either running on command line, or packaged into an app bundle.
+if getattr(sys, 'frozen', False): # If this is a frozen PyInstaller bundle.
+    FROZEN = True
+    if PLATFORM == 'OSX':
+        BASEDIR = sys._MEIPASS+'/'
+        BASE_URL = BASEDIR
+        PROFILE_DIR = os.path.expanduser('~/Library/Application Support/Aether/')
+    elif PLATFORM == 'WIN':
+        BASEDIR = sys._MEIPASS+'/'
+        BASE_URL = BASEDIR
+        PROFILE_DIR = os.environ['ALLUSERSPROFILE']+'\\Aether\\'
+    elif PLATFORM == 'LNX':
+        BASEDIR = sys._MEIPASS+'/'
+        BASE_URL = BASEDIR
+        PROFILE_DIR = os.path.expanduser('~/.aether/')
 
-appStartedAtBoot = False
+else: # If running on command line.
+    FROZEN = False
+    if PLATFORM == 'OSX':
+        BASEDIR = ''
+        PROFILE_DIR = os.path.expanduser('~/Library/Application Support/Aether/')
+        BASE_URL = os.path.dirname(__file__)+'/'
+    elif PLATFORM == 'WIN':
+        BASEDIR =  ''
+        PROFILE_DIR = os.environ['ALLUSERSPROFILE']+'\\Aether\\'
+        BASE_URL = os.path.dirname(__file__)+'/'
+    elif PLATFORM == 'LNX':
+        BASEDIR = ''
+        PROFILE_DIR = os.path.expanduser('~/.aether/')
+        BASE_URL = os.path.dirname(__file__)+'/'
+
+try:
+    mkdir(PROFILE_DIR)
+    mkdir(PROFILE_DIR + 'UserProfile')
+    mkdir(PROFILE_DIR + 'Database')
+    mkdir(PROFILE_DIR + 'Logs')
+except: pass
+
 
 # Application version.
 
-appVersion = 110
+AETHER_VERSION = 123
 
 #Protocol Version of this version of the app. This is separate from app version.
 
-protocolVersion = 100
+PROT_VERSION = 100
+
 
 # If the application is paused.
 
 appIsPaused = False
+# This is here because:
+# 1) this is a value that needs to be set many times from the backend, and not at all from the frontend.
+# 2) This is related to the current running instance of the app and should be reset at every start.
+notificationShown = False
 
 # These are packet counts (how many items go into one packet) for nodes and headers used in aetherProtocol.
 # These aren't supposed to be user editable. This is something inherent in the protocol and dictated by AMP's 65536 byte
 # limit per packet.
 
-nodePacketCount = 10
-headerPacketCount = 10
+NODE_PACKET_COUNT = 10
+HEADER_PACKET_COUNT = 10
 
-def getRandomOpenPort():
-    # Binding to port 0 lets the OS give you an open port.
-    import socket
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(("",0))
-    s.listen(1)
-    port = s.getsockname()[1]
-    s.close()
-    return port
+## Settable statics
 
-# These define application status, either running on command line, or packaged into an app bundle.
-if getattr(sys, 'frozen', False): # If this is a frozen PyInstaller bundle.
-    FROZEN = True
-    if PLATFORM == 'OSX':
-        basedir = sys._MEIPASS+'/'
-        profiledir = os.path.expanduser('~/Library/Application Support/Aether/')
-        baseurl = basedir
-    elif PLATFORM == 'WIN':
-        profiledir = os.environ['ALLUSERSPROFILE']+'\\Aether\\'
-        basedir = sys._MEIPASS+'/'
-        baseurl = basedir
-    elif PLATFORM == 'LNX':
-        basedir = sys._MEIPASS+'/'
-        profiledir = sys._MEIPASS+'/'
-        baseurl = basedir
-else: # If running on command line.
-    FROZEN = False
-    if PLATFORM == 'OSX':
-        basedir = ''
-        profiledir = os.path.expanduser('~/Library/Application Support/Aether/')
-        baseurl = os.path.dirname(__file__)+'/'
-    if PLATFORM == 'LNX':
-        basedir = ''
-        profiledir = ''
-        baseurl = os.path.dirname(__file__)+'/'
-    elif PLATFORM == 'WIN':
-        basedir =  ''
-        profiledir = os.environ['ALLUSERSPROFILE']+'\\Aether\\'
-        baseurl = os.path.dirname(__file__)+'/'
+# Set this to true if the app received the open signal at boot, so I can hide the splash and the UI.as
 
-try:
-    mkdir(profiledir)
-except: pass
-
-
-### THE VALUES BELOW GETS OVERWRITTEN WHEN THE APPLICATION STARTS WITH THE VALUES IN USER PROFILE.
-
-# Maximum simultaneous outbound connection count.
-maxOutboundCount = 10
-# Maximum simultaneous inbound connections per cycle.
-maxInboundCount = 3
-# How long in minutes the engine waits until a recently connected node is again released to the pool of potential
-# connection candidates.
-cooldown = 5
-
-
+APP_STARTED_AT_SYSTEM_STARTUP = False
 
 
 # If database or userSettings does not exist, this is a first run.
-newborn = True if not os.path.exists(profiledir + 'Database/aether.db') and \
-                   not os.path.exists(profiledir + 'UserProfile/backendSettings.dat') else False
+NEWBORN = True if not os.path.exists(PROFILE_DIR + 'Database/aether.db') and \
+                   not os.path.exists(PROFILE_DIR + 'UserProfile/UserProfile.json') else False
 
-if newborn:
-       print('This is the first run of Aether.')
-
-# If database exists but not settings, then it's a restartRun. In that case,
-# I preserve the DB, and update the local node information. This is essentially a reset button.
-# This allows the user to get a new nodeid, most of all... Should getting a new node id nuke the DB?
-# I'm assuming not, for now.
-resetted = True if os.path.exists(profiledir + 'Database/aether.db') and \
-                 not os.path.exists(profiledir + 'UserProfile/backendSettings.dat') else False
-
-if resetted:
-    print('Aether has just been resetted. Getting a new Node ID all settings are returned to defaults.')
+# If database exists but not settings, then it's a reset. In that case,
+# I preserve the DB, and update the local node information. This is a restart button.
+RESETTED = True if os.path.exists(PROFILE_DIR + 'Database/aether.db') and \
+                 not os.path.exists(PROFILE_DIR + 'UserProfile/UserProfile.json') else False
 
 # Database does not exist, but settings do.
-nuked = True if not os.path.exists(profiledir + 'Database/aether.db') and \
-                  os.path.exists(profiledir + 'UserProfile/backendSettings.dat') else False
-
-if nuked:
-    print('Aether has just ben nuked. I\'m keeping the settings and Node ID, but creating a new database.')
+NUKED = True if not os.path.exists(PROFILE_DIR + 'Database/aether.db') and \
+                  os.path.exists(PROFILE_DIR + 'UserProfile/UserProfile.json') else False
 
 
-# This gets the stored config details from the file.
-try:
-    with open(profiledir + 'UserProfile/backendSettings.dat', 'rb') as f2:
-            nodeid = pickle.load(f2)
-            enableWebkitInspector = pickle.load(f2)
-            aetherListeningPort = pickle.load(f2)
-            updateAvailable = pickle.load(f2)
-            onboardingComplete = pickle.load(f2)
+class UserProfile(object):
 
-except:
-    # Setting some defaults.
-    nodeid = hashlib.sha256(str(random.getrandbits(256))).hexdigest()
-    ##print('The client picked for itself the Node ID %s' %nodeid)
-    enableWebkitInspector = False
-    aetherListeningPort = getRandomOpenPort()
-    updateAvailable = False
-    onboardingComplete = False
-    # Max outbound
+    def __init__(self):
 
+        # This is the internal state.
+        self.__settingsAndProfile = {}
+        self.loadFromFilesystem()
 
-    try:
-        mkdir(profiledir + 'UserProfile')
-        mkdir(profiledir + 'Database')
-    except: pass
-    with open(profiledir + 'UserProfile/backendSettings.dat', 'wb') as f1:
-        pickle.dump(nodeid, f1)
-        pickle.dump(enableWebkitInspector, f1)
-        pickle.dump(aetherListeningPort, f1)
-        pickle.dump(updateAvailable, f1)
-        pickle.dump(onboardingComplete, f1)
-        pickle.dump(maxOutboundCount, f1)
-        pickle.dump(maxInboundCount, f1)
-        pickle.dump(cooldown, f1)
+    def loadFromFilesystem(self):
+        if os.path.isfile(PROFILE_DIR+'UserProfile/UserProfile.json'):
+            # We already have a JSON file. Load the details from the file at the start.
+            with open(PROFILE_DIR+'UserProfile/UserProfile.json', 'rb') as f:
+                self.__settingsAndProfile = ujson.loads(f.read())
 
-
-# This sets the config values into the file.
-
-# The three items below, they need to be merged into one function at some point. Just make some enum that points to
-# the location in the pickle and the rest is fine.
-
-def setUpdateAvailable(updateAvailable):
-    # Do not forget, these arguments are set when the function is initialised. So if there is more than one value change
-    # Through the entire app lifetime, the second change is going to overwrite the the first change because at the
-    # point of second change the default value in the key.. Fixed this. This is far safer.
-    with open(profiledir + 'UserProfile/backendSettings.dat', 'wb') as f1:
-        pickle.dump(nodeid, f1)
-        pickle.dump(enableWebkitInspector, f1)
-        pickle.dump(aetherListeningPort, f1)
-        pickle.dump(updateAvailable, f1)
-        pickle.dump(onboardingComplete, f1)
-
-def setListeningPort(aetherListeningPort):
-    with open(profiledir + 'UserProfile/backendSettings.dat', 'wb') as f1:
-        pickle.dump(nodeid, f1)
-        pickle.dump(enableWebkitInspector, f1)
-        pickle.dump(aetherListeningPort, f1)
-        pickle.dump(updateAvailable, f1)
-        pickle.dump(onboardingComplete, f1)
-
-def setOnboardingComplete(onboardingComplete):
-    with open(profiledir + 'UserProfile/backendSettings.dat', 'wb') as f1:
-        pickle.dump(nodeid, f1)
-        pickle.dump(enableWebkitInspector, f1)
-        pickle.dump(aetherListeningPort, f1)
-        pickle.dump(updateAvailable, f1)
-        pickle.dump(onboardingComplete, f1)
+                # Check for old version.
+                if 'selectedTopics' in self.__settingsAndProfile:
+                    # This is a 1.1.2 JSON file. needs to be migrated.
+                    migrationResult = self.__migrateFrom112to120(self.__settingsAndProfile)
+                    with open(PROFILE_DIR+'UserProfile/UserProfile.json', 'wb') as f:
+                        f.write(ujson.encode(migrationResult))
+                    self.__settingsAndProfile = ujson.loads(f.read())
+                else:
+                    # The main
+                    self.__updateBootStatus()
+        else:
+            # We don't have a JSON file. This means it's not created yet. Create it.
+            with open(PROFILE_DIR+'UserProfile/UserProfile.json', 'wb') as f:
+            # Now, time to set some defaults.
+                newProfileFile = self.__produceProfileWithDefaults()
+                newProfileFile['machineDetails']['listeningPort'] = self.__getRandomOpenPort()
+                f.write(ujson.encode(newProfileFile))
+            # This is the first load ever.
+            with open(PROFILE_DIR+'UserProfile/UserProfile.json', 'rb') as f:
+                self.__settingsAndProfile = ujson.loads(f.read())
+            # Initialisation based on these values.
 
 
-# These are values gathered from JSON. These values will be updated when frontend requires a JSON change.
-userLanguages = ['English','Turkish','Spanish','French','German','Portuguese','Russian','Chinese','Chineset']
 
-# Currently selected topics.
 
-selectedTopics = []
+    def set(self, division, name, value):
 
-# Globals API for notifying about JSON updates.
+        def __write(division, name, value):
+            self.__settingsAndProfile[division][name] = value
+            with open(PROFILE_DIR+'UserProfile/UserProfile.json', 'wb') as f:
+                f.write(ujson.encode(self.__settingsAndProfile))
 
-def refreshBackendValuesGatheredFromJson(userProfileInJSON):
-    data = ujson.loads(userProfileInJSON)
-
-    global selectedTopics
-    selectedTopics = data['selectedTopics']
-    ##print('Current selected topics: ', selectedTopics)
-    global userLanguages
-    userLanguages = data['UserDetails']['UserLanguages']
-    ##print('Current user languages is/are %s' %userLanguages)
-    startAtBoot = data['UserDetails']['StartAtBoot']
-    ##print('Current Start at Boot preference is: %s' %startAtBoot)
-    global maxInboundCount
-    global maxOutboundCount
-    global cooldown
-    maxOutboundCount = int(data['UserDetails']['maxOutboundCount'])
-    print('max outbound it set:', maxOutboundCount)
-    print('max inbound it set:', maxInboundCount)
-    print('cooldown it set:', cooldown)
-    maxInboundCount = int(data['UserDetails']['maxInboundCount'])
-    cooldown = int(data['UserDetails']['cooldown'])
-
-    if startAtBoot and FROZEN and PLATFORM == 'OSX':
         try:
-            copy(basedir+'Assets/com.Aether.Aether.plist', os.path.expanduser('~/Library/LaunchAgents/com.Aether.Aether.plist'))
+            self.__settingsAndProfile[division][name] = value
         except:
-            mkdir(os.path.expanduser('~/Library/LaunchAgents/'))
+            self.loadFromFilesystem()
+        else:
+            print('Setting %s, %s as %s' %(division, name, str(value)))
+            __write(division, name, value)
 
-            # FIXME
-            copy(basedir+'Assets/com.Aether.Aether.plist', os.path.expanduser('~/Library/LaunchAgents/com.Aether.Aether.plist'))
-        ##print('Aether in Boot.')
-    else:
+            # Special Cases. These cases require specific actions to be taken.
+            if division == 'machineDetails':
+                if name == 'startAtBoot':
+                    self.__updateBootStatus()
+            elif division == 'userDetails':
+                pass
+            elif division == 'debugDetails':
+                pass
+
+            with open(PROFILE_DIR+'UserProfile/UserProfile.json', 'wb') as f:
+                f.write(ujson.encode(self.__settingsAndProfile))
+
+    def get(self, division, name):
+        self.loadFromFilesystem()
         try:
-            os.remove(os.path.expanduser('~/Library/LaunchAgents/com.Aether.Aether.plist'))
+            result = self.__settingsAndProfile[division][name]
+            print('Getting %s, %s, result is %s' %(division, name, str(self.__settingsAndProfile[division][name])))
+        except KeyError:
+            print('The application tried to reach a key that does not yet exist. Creating the JSON key.')
+            self.set(division,name, None)
+            result = None
+        return result
+
+    def __migrateFrom112to120(self, __old_profileJson):
+        newTemplate = self.__produceProfileWithDefaults()
+
+        # Extracting old values
+        with open(PROFILE_DIR + 'UserProfile/backendSettings.dat', 'rb') as f:
+            __old_nodeid = pickle.load(f)
+            __old_enableWebkitInspector = pickle.load(f)
+            __old_oldaetherListeningPort = pickle.load(f)
+            __old_oldupdateAvailable = pickle.load(f)
+            __old_onboardingComplete = pickle.load(f)
+        __old_selectedTopics = __old_profileJson['selectedTopics']
+        __old_username = __old_profileJson['UserDetails']['Username']
+        __old_userLanguages = __old_profileJson['UserDetails']['UserLanguages']
+        __old_startAtBoot = __old_profileJson['UserDetails']['StartAtBoot']
+        __old_maxInboundCount = __old_profileJson['UserDetails']['maxInboundCount']
+        __old_maxOutboundCount = __old_profileJson['UserDetails']['maxOutboundCount']
+        __old_cooldown = __old_profileJson['UserDetails']['cooldown']
+        __old_unreadReplies = __old_profileJson['UnreadReplies']
+        __old_readReplies = __old_profileJson['ReadReplies']
+        try:
+            __old_subjectsSingleColumnLayout = __old_profileJson['subjectsSingleColumnLayout']
+        except: pass # That may not always exist.
+
+        # Putting in new values
+
+        newTemplate['machineDetails']['maxOutboundCount'] = __old_maxOutboundCount
+        newTemplate['machineDetails']['updateAvailable'] = __old_oldupdateAvailable
+        newTemplate['machineDetails']['listeningPort'] = __old_oldaetherListeningPort
+        newTemplate['machineDetails']['nodeid'] = __old_nodeid
+        newTemplate['machineDetails']['startAtBoot'] = __old_startAtBoot
+        newTemplate['machineDetails']['cooldown'] = __old_cooldown
+        newTemplate['machineDetails']['cooldown'] = __old_cooldown
+        newTemplate['machineDetails']['onboardingComplete'] = __old_onboardingComplete
+        newTemplate['machineDetails']['maxInboundCount'] = __old_maxInboundCount
+
+        newTemplate['userDetails']['username'] = __old_username
+        newTemplate['userDetails']['unreadReplies'] = __old_unreadReplies
+        try:
+            newTemplate['userDetails']['subjectsSingleColumnLayout'] = __old_subjectsSingleColumnLayout
         except: pass
-        ##print('Aether out of Boot.')
+        newTemplate['userDetails']['readReplies'] = __old_readReplies
+        newTemplate['userDetails']['userLanguages'] = __old_userLanguages
+        newTemplate['userDetails']['selectedTopics'] = __old_selectedTopics
 
-    return True
+        newTemplate['debugDetails']['enableWebkitInspector'] = __old_enableWebkitInspector
 
-if not newborn and not resetted:
-    try:
-        f = open(profiledir+'UserProfile/UserProfile.json', 'rb')
-        refreshBackendValuesGatheredFromJson(f.read())
-        f.close()
-    except:
+        # And finally, remove the backendSettings.dat forever!
+        os.remove(PROFILE_DIR + 'UserProfile/backendSettings.dat')
+
+        return newTemplate
+
+    def __produceProfileWithDefaults(self):
+            userDetails = {
+                'username': '',
+                'userLanguages': ['English','Turkish','Spanish','French','German','Portuguese','Russian','Chinese','Chineset'],
+                'selectedTopics': [],
+                'readReplies': [],
+                'unreadReplies': [],
+                'subjectsSingleColumnLayout': False,
+                'theme': False,
+            }
+            machineDetails = {
+                'nodeid' : hashlib.sha256(str(random.getrandbits(256))).hexdigest(),
+                'externalIP': '',
+                'listeningPort': '',
+                'updateAvailable': False,
+                'onboardingComplete': False,
+                'startAtBoot': True, # This is idempotent on Windows.
+                'maxInboundCount': 3,
+                'maxOutboundCount': 10,
+                'cooldown': 5,
+                'checkForUpdates': True,
+                'allowPublicIPLookup': True,
+                'lastConnectedBareIP': '',
+                'lastConnectedBarePort': 0,
+            }
+            debugDetails = {
+                'enableWebkitInspector': False,
+                'debugLogging': False,
+            }
+            return { 'userDetails': userDetails,
+                    'machineDetails': machineDetails,
+                    'debugDetails':debugDetails, }
+
+    def __getRandomOpenPort(self):
+        # Binding to port 0 lets the OS give you an open port.
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(("",0))
+        s.listen(1)
+        port = s.getsockname()[1]
+        s.close()
+        return port
+
+    def __updateBootStatus(self):
+        if FROZEN: # If not frozen, do nothing.
+            if self.__settingsAndProfile['machineDetails']['startAtBoot']: # If at boot.
+                if PLATFORM == 'OSX':
+                    if not os.path.isfile(os.path.expanduser('~/Library/LaunchAgents/com.Aether.Aether.plist')):
+                        try:
+                            copy(BASEDIR+'Assets/com.Aether.Aether.plist',
+                                 os.path.expanduser('~/Library/LaunchAgents/com.Aether.Aether.plist'))
+                        except:
+                            mkdir(os.path.expanduser('~/Library/LaunchAgents/'))
+                            copy(BASEDIR+'Assets/com.Aether.Aether.plist',
+                                 os.path.expanduser('~/Library/LaunchAgents/com.Aether.Aether.plist'))
+
+                elif PLATFORM == 'WIN':
+                    pass # On Windows, it's controlled by the OS, so this is idempotent.
+                elif PLATFORM == 'LNX':
+                    if not os.path.isfile(os.path.expanduser('~/.config/autostart/Aether-startup.desktop')):
+                        try:
+                            copy(BASEDIR+'Assets/Aether-startup.desktop',
+                                os.path.expanduser('~/.config/autostart/Aether-startup.desktop'))
+                            # Then set it to executable.
+                        except:
+                            mkdir(os.path.expanduser('~/.config/autostart/'))
+                            copy(BASEDIR+'Assets/Aether-startup.desktop',
+                                 os.path.expanduser('~/.config/autostart/Aether-startup.desktop'))
+                        else:
+                            st = os.stat(os.path.expanduser('~/.config/autostart/Aether-startup.desktop'))
+                            os.chmod(os.path.expanduser('~/.config/autostart/Aether-startup.desktop'), st.st_mode | stat.S_IEXEC)
+
+            else: # If the user decides to remove it.
+                if PLATFORM == 'OSX':
+                    try:
+                        os.remove(os.path.expanduser('~/Library/LaunchAgents/com.Aether.Aether.plist'))
+                    except: pass
+                elif PLATFORM == 'WIN': # On Windows, it's controlled by the OS, so this is idempotent.
+                    pass
+                elif PLATFORM == 'LNX':
+                    try:
+                        os.remove(os.path.expanduser('~/.config/autostart/Aether-startup.desktop'))
+                    except: pass
+
+userProfile = UserProfile()
+
+
+if not userProfile.get('debugDetails', 'debugLogging'):
+    def print(*a, **kwargs):
         pass
+
+if NEWBORN:
+    print('This is the first run of Aether.')
+elif RESETTED:
+    print('Aether has just been resetted. Getting a new Node ID all settings are returned to defaults.')
+elif NUKED:
+    print('Aether has just ben nuked. I\'m keeping the settings and Node ID, but creating a new database.')
+    userProfile.set('machineDetails', 'onboardingComplete', False)
 
 # This is the context factory used to create TLS contexts.
 
@@ -272,8 +348,8 @@ class AetherContextFactory(ContextFactory):
         ctx = SSL.Context(SSL.TLSv1_METHOD)
         # This creates the key pairs and the cert if they do not exist.
         try:
-            ctx.use_privatekey_file(profiledir+'UserProfile/priv.pem')
-            ctx.use_certificate_file(profiledir+'UserProfile/cert.pem')
+            ctx.use_privatekey_file(PROFILE_DIR+'UserProfile/priv.pem')
+            ctx.use_certificate_file(PROFILE_DIR+'UserProfile/cert.pem')
         except:
             # We don't have the requirements, so let's create them.
             ##print('This machine doesn\'nt seem to have a keypair and a cert. Creating new, at %s' %datetime.utcnow())
@@ -289,15 +365,15 @@ class AetherContextFactory(ContextFactory):
             cert.set_issuer(cert.get_subject())
             cert.set_pubkey(k)
             cert.sign(k, 'sha1')
-            newCertFile = open(profiledir+'UserProfile/cert.pem', 'wb')
+            newCertFile = open(PROFILE_DIR+'UserProfile/cert.pem', 'wb')
             newCertFile.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
             newCertFile.close()
-            newKeyFile = open(profiledir+'UserProfile/priv.pem', 'wb')
+            newKeyFile = open(PROFILE_DIR+'UserProfile/priv.pem', 'wb')
             newKeyFile.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, k))
             newKeyFile.close()
             ##print('Key generation finished at %s' %datetime.utcnow())
-            ctx.use_privatekey_file(profiledir+'UserProfile/priv.pem')
-            ctx.use_certificate_file(profiledir+'UserProfile/cert.pem')
+            ctx.use_privatekey_file(PROFILE_DIR+'UserProfile/priv.pem')
+            ctx.use_certificate_file(PROFILE_DIR+'UserProfile/cert.pem')
 
         return ctx
 
@@ -307,9 +383,30 @@ aetherClientContextFactoryInstance = AetherClientContextFactory()
 
 aetherContextFactoryInstance = AetherContextFactory()
 
-# The global app quit routine.
+# Utility functions to provide basic functionality required in other parts of the application.
+
+def checkIPValidity(address):
+    # Checks if an IP address is valid.
+    try:
+        socket.inet_aton(address)
+        return True
+    except:
+        return False
+
+def logSystemDetails():
+    # Print the system details.
+    print('Running Aether %s with protocol version %s on %s' % (AETHER_VERSION, PROT_VERSION, PLATFORM))
+    print('This is %s : %s at %s' % (
+           userProfile.get('machineDetails', 'externalIP'),
+           userProfile.get('machineDetails', 'listeningPort'),
+           userProfile.get('machineDetails', 'nodeid')
+                                    ))
+    if NEWBORN:
+        print('Aether is newborn. This is the first run of Aether on this machine, '
+              'or the profile was completely deleted beforehand.')
 
 def quitApp(reactor):
+    # The global app quit routine.
     # This is (probably) buggy...
     if reactor.threadpool is not None:
         reactor.threadpool.stop()
@@ -317,6 +414,7 @@ def quitApp(reactor):
     sys.exit()
 
 def raiseAndFocusApp():
+    # On OS X, this raises the into the focus and to the frontmost level.
     raiseWindowCmd = \
     '''osascript<<END
     tell application "Aether"

@@ -1,5 +1,6 @@
 <div class="subject-item" ng-click="changeState('postsFeed', '', subject.PostFingerprint)"
-        ng-class="{'selected':subject.PostFingerprint == requestedId}">
+        ng-class="{'selected':subject.PostFingerprint == requestedId}"
+        id="post-{{ subject.PostFingerprint }}">
     <span class="subject-headline">
         {{ subject.Subject }}
         <span class="subject-owner">

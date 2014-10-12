@@ -8,26 +8,26 @@
         <!--ng-class="{'non-first': thereIsASelectedSubject,-->
         <!--'selected': isActive('findOrCreateTopic')}"-->
         <!--ng-click="toggleFindOrCreateTopic()"></i>-->
-        <div class="view-type-box " ng-show="currentPaneIsSubjects">
-            <i class="fa fa-th view-type-icon" ng-hide="thereIsASelectedSubject"
-               ng-click="setSubjectsToMultiColumn()" ng-class="{'selected': !userProfile.subjectsSingleColumnLayout}"></i>
-            <i class="fa fa-align-justify view-type-icon" ng-hide="thereIsASelectedSubject"
-               ng-click="setSubjectsToSingleColumn()" ng-class="{'selected': userProfile.subjectsSingleColumnLayout}"></i>
+        <div class="view-type-box" ng-show="secondFrameSelectedTemplate.name == 'subjectsFeed'">
+            <i class="fa fa-th view-type-icon"
+               ng-click="setSubjectsToMultiColumn()" ng-class="{'selected': !userProfile.userDetails.subjectsSingleColumnLayout}"></i>
+            <i class="fa fa-align-justify view-type-icon"
+               ng-click="setSubjectsToSingleColumn()" ng-class="{'selected': userProfile.userDetails.subjectsSingleColumnLayout}"></i>
         </div>
-        <div class="view-type-box">
-            <i class="fa fa-chevron-down view-type-icon" ng-show="thereIsASelectedSubject"
-               ng-click="returnToSubjects()"></i>
-        </div>
+        <!--<div class="view-type-box">-->
+            <!--<i class="fa fa-chevron-down view-type-icon" ng-show="thereIsASelectedSubject"-->
+               <!--ng-click="returnToSubjects()"></i>-->
+        <!--</div>-->
     </div>
     <div id="third-frame-header-space-holder"></div>
-    <div class="topics-item-container" ng-show="userProfile.selectedTopics.length">
+    <div class="topics-item-container"3>
         <div ng-repeat="topic in topics"
         ng-include="'contentBlocks/topic.html'">
         </div>
     </div>
-    <div class="topics-no-item-container" ng-hide="topics.length">
-        <div class="info-message">
-            You can subscribe to boards on the Boards pane ( <i class="fa fa-th-large"></i> ) to the left.
-        </div>
-    </div>
+    <!--<div class="topics-no-item-container" ng-hide="topics.length">-->
+        <!--<div class="info-message">-->
+            <!--You can subscribe to boards on the Boards pane ( <i class="fa fa-th-large"></i> ) to the left.-->
+        <!--</div>-->
+    <!--</div>-->
 </div>

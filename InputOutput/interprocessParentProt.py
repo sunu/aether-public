@@ -4,42 +4,81 @@ from interprocessAPI import *
 from twisted.internet import reactor
 from ORM.Demeter import committer, connectToLastConnected
 import globals
+from globals import PLATFORM, BASEDIR
+from PyQt5 import QtWidgets
 
-if not globals.debugEnabled:
+if not globals.userProfile.get('debugDetails', 'debugLogging'):
     def print(*a, **kwargs):
-        pass
-    def cprint(text, color=None, on_color=None, attrs=None, **kwargs):
         pass
 
 class MainProcessProtocol(amp.AMP):
-    def __init__(self):
-        amp.AMP.__init__(self)
-        print('Main Process Protocol initialized')
-        pass
+    def killApp(self):
+        # This is probably not needed in the new arch. TODO
+        print('sending kill signal')
+        return self.callRemote(killApp)
 
-    @commit.responder
-    def guiCommitted(self, PostFingerprint):
-        #committer.commit()
-        # TODO: Do other stuff required when user adds something.
-        # I need to find the last n dudes I connected at, and ignore the cooldown and connect back to them
-        # to serve my newest shit.
-        # Okay, get the connectToNode method
-        committer.newPostsToIncrement.append(PostFingerprint)
-        connectToLastConnected(10)
-        print('I received a commit signal from child process.')
+    def commit(self, PostFingerprint):
+        print('commit is called to parent')
+        return self.callRemote(commit, PostFingerprint=PostFingerprint)
+
+    def connectWithIP(self, IP, Port):
+        return self.callRemote(connectWithIP, IP=IP, Port=int(Port))
+
+    # These are methods arriving from Main thread to GUI thread (this thread.)
+
+    @thereAreReplies.responder
+    def respondToThereAreReplies(self):
+        # Do stuff here.
+
+        # Here I need to check the reply count and post that reply count to the main page by changing the scope element.
+        print('I received a NEW REPLIES signal')
+        print('globals notification shown is', globals.notificationShown)
+        if not globals.notificationShown:
+            # Prevents further notifications from happening, unless user clears them up.
+            globals.notificationShown = True
+            if PLATFORM == 'OSX':
+                self.trayIcon.showMessage('New Messages', 'You have new replies.', QtWidgets.QSystemTrayIcon.Information)
+                self.trayIcon.lightUpIcon()
+            elif PLATFORM == 'WIN':
+                self.trayIcon.showMessage('Aether', 'You have new replies.', QtWidgets.QSystemTrayIcon.Information)
+                self.trayIcon.lightUpIcon()
+            elif PLATFORM == 'LNX':
+                try:
+                    import subprocess
+                    pid = subprocess.Popen(['notify-send',
+                                            'Aether',
+                                            'You have new replies.',
+                                            '--icon=' + BASEDIR + 'Assets/splash.png']).pid
+                except: pass
+        replyCount = self.Hermes.countReplies()
+        # This doesn't seem to be working. It might be that it's running attached to PyCharm, or it might legitimately be broken. TEST
+        jsString = \
+            ("rootScope = angular.element(document.getElementById('root-body')).scope();"
+             "rootScope.totalReplyCount = %s;"
+             "rootScope.$apply();" % replyCount
+            )
+        self.JSContext(jsString)
         return {}
 
-    @killApp.responder
-    def killAppResponder(self):
-        print('I received a kill signal. KTHXBAI')
-        d = self.processPool.stop()
-        def stopR(*a):
-            reactor.stop()
-        d.addCallback(stopR)
-        return {}
-
-    @connectWithIP.responder
-    def respondToConnectButton(self, IP, Port):
-        print('I received a connect request to %s:%s' %(IP, Port))
-        return {}
+    # def connectionLost(self, reason):
+    #     #do nothing?
+    #     pass
+    #     # amp.AMP.connectionLost(self, reason)
+    #     # from twisted.internet import reactor
+    #     # try:
+    #     #     reactor.stop()
+    #     # except error.ReactorNotRunning:
+    #     #     # woa, this means that something bad happened,
+    #     #     # most probably we received a SIGINT. Now this is only
+    #     #     # a problem when you use Ctrl+C to stop the main process
+    #     #     # because it would send the SIGINT to child processes too.
+    #     #     # In all other cases receiving a SIGINT here would be an
+    #     #     # error condition and correctly restarted. maybe we should
+    #     #     # use sigprocmask?
+    #     #     pass
+    #     # if not self.shutdown:
+    #     #     # if the shutdown wasn't explicit we presume that it's an
+    #     #     # error condition and thus we return a -1 error returncode.
+    #     #     import os
+    #     #     os._exit(-1)
 

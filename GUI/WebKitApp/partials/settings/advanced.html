@@ -8,8 +8,8 @@
                     <span class="question-name">Maximum simultaneous inbound connections</span>
                     <span class="question-explanation block-explanation">Maximum number of people that can request posts from your computer at the same time.</span>
                     <div class="textbox-container">
-                        <input type="text" class="text-entry text-entry-advanced" ng-model="userProfile.UserDetails.maxInboundCount"
-                        maxlength="2">
+                        <input type="number" class="text-entry text-entry-advanced" ng-model="userProfile.machineDetails.maxInboundCount"
+                        min="1" max="100" required>
                     </div>
                 </div>
             </td>
@@ -20,8 +20,8 @@
                     <span class="question-name">Maximum simultaneous outbound connections</span>
                     <span class="question-explanation block-explanation">Maximum number of people your client will try to connect to at the same time.</span>
                     <div class="textbox-container">
-                        <input type="text" class="text-entry text-entry-advanced" ng-model="userProfile.UserDetails.maxOutboundCount"
-                        maxlength="2">
+                        <input type="number" class="text-entry text-entry-advanced" ng-model="userProfile.machineDetails.maxOutboundCount"
+                        min="1" max="100" required>
                     </div>
                 </div>
             </td>
@@ -30,14 +30,19 @@
             <td>
                 <div class="defaults-question">
                     <span class="question-name">Cooldown period</span>
-                    <span class="question-explanation block-explanation">Time between each sync request to the remote node.</span>
+                    <span class="question-explanation block-explanation">Waiting period between each sync request to the same remote node (minutes).</span>
                     <div class="textbox-container">
-                        <input type="text" class="text-entry text-entry-advanced" ng-model="userProfile.UserDetails.cooldown"
-                        maxlength="2">
+                        <input type="number" class="text-entry text-entry-advanced" ng-model="userProfile.machineDetails.cooldown"
+                        min="1" max="100" required>
                     </div>
                 </div>
             </td>
         </tr>
+         <tr>
+             <td>
+                 <div class="settings-ok-button" id="advanced-ok-button" ng-click="resetAdvanced()">RESET TO DEFAULTS</div>
+             </td>
+         </tr>
     </table>
-    <div class="settings-ok-button" ng-click="resetAdvanced()">RESET TO DEFAULTS</div>
+
 </div>

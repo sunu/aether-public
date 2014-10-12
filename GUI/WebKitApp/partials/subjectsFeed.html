@@ -8,35 +8,48 @@
                 <span id="subject-header">{{ selectedTopic.Subject }}</span>
 
                 <div class="subject-global-actions-box">
+                    <div class="subscribe-container board-top-actions-container">
+                        <span class="subscribe-button" ng-click="changeState('createSubject','','')"
+                        >Create New Thread</span>
+                    </div>
+                    <div class="subscribe-container">
+                        <span class="subscribe-button" ng-show="isCurrentlySubscribed"
+                        ng-click="toggleSubscriptionState()"
+                        >Unsubscribe</span>
 
-                    <span class="date-picker"
-                    ng-class="{'date-picker-selected': activePicker == 1 || activePicker == undefined}"
-                    ng-click="timespan = 0; activePicker = 1;"
-                    >All</span>
+                        <span class="subscribe-button" ng-show="!isCurrentlySubscribed"
+                        ng-click="toggleSubscriptionState()"
+                        >Subscribe</span>
+                    </div>
+                    <div class="date-picker-container">
+                        <span class="date-picker"
+                        ng-class="{'date-picker-selected': activePicker == 1 || activePicker == undefined}"
+                        ng-click="timespan = 0; activePicker = 1;"
+                        >All</span>
 
-                    <span class="date-picker"
-                    ng-class="{'date-picker-selected': activePicker == 2}"
-                    ng-click="timespan = 30; activePicker = 2;"
-                    >This Month</span>
+                        <span class="date-picker"
+                        ng-class="{'date-picker-selected': activePicker == 2}"
+                        ng-click="timespan = 30; activePicker = 2;"
+                        >This Month</span>
 
-                    <span class="date-picker"
-                    ng-class="{'date-picker-selected': activePicker == 3}"
-                    ng-click="timespan = 7; activePicker = 3;"
-                    >This Week</span>
+                        <span class="date-picker"
+                        ng-class="{'date-picker-selected': activePicker == 3}"
+                        ng-click="timespan = 7; activePicker = 3;"
+                        >This Week</span>
 
-                    <span class="date-picker"
-                    ng-class="{'date-picker-selected': activePicker == 4}"
-                    ng-click="timespan = 1; activePicker = 4;"
-                    >Today</span><br>
-
+                        <span class="date-picker"
+                        ng-class="{'date-picker-selected': activePicker == 4}"
+                        ng-click="timespan = 1; activePicker = 4;"
+                        >Today</span><br>
+                    </div>
                 </div>
-                <div class="new-subject-button"
-                ng-click="changeState('createSubject','','')">
-                    CREATE NEW THREAD
-                </div>
+                <!--<div class="new-subject-button"-->
+                <!--ng-click="changeState('createSubject','','')">-->
+                    <!--CREATE NEW THREAD-->
+                <!--</div>-->
 
             </div>
-            <div class="column-container" ng-hide="userProfile.subjectsSingleColumnLayout">
+            <div class="column-container multi-column" ng-hide="userProfile.userDetails.subjectsSingleColumnLayout">
                 <div class="column-1">
                     <div ng-repeat="subject in subjectsCol1"
                     ng-include="'contentBlocks/subjectBox.html'">
@@ -53,9 +66,9 @@
                     </div>
                 </div>
             </div>
-            <div class="column-container" ng-show="userProfile.subjectsSingleColumnLayout">
+            <div class="column-container single-column" ng-show="userProfile.userDetails.subjectsSingleColumnLayout">
                 <div ng-repeat="subject in singleCol"
-                ng-include="'contentBlocks/subjectBoxSingleCol.html'">
+                ng-include="'contentBlocks/subjectBoxSingleCol.html'" class="subject-box-container">
                 </div>
             </div>
         </div>
